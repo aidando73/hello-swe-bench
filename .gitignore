@@ -1,1 +1,7 @@
 env/
+django/
+sympy/
+pytest/
+xarray/
+requests/
+matplotlib/
