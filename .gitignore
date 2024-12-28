@@ -7,3 +7,7 @@ requests/
 matplotlib/
 pylint/
 sphinx/
+flask/
+scikit-learn/
+seaborn/
+astropy
