@@ -1,5 +1,6 @@
 
-directory = "/Users/aidand/dev/hello-swe-bench/django"
+# directory = "/Users/aidand/dev/hello-swe-bench/django"
+directory = "/workspace/django"
 
 with open('problem_statement.txt', 'r') as f:
     problem_statement = f.read()
