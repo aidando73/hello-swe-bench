@@ -13,9 +13,9 @@ print(f"Problem statement: {problem_statement}")
 
 instruction = (
     '<uploaded_files>\n'
-    f'/workspace/django\n'
+    f'{directory}\n'
     '</uploaded_files>\n'
-    f"I've uploaded a python code repository in the directory /django. Consider the following PR description:\n\n"
+    f"I've uploaded a python code repository in the directory {directory}. Consider the following PR description:\n\n"
     f'<pr_description>\n'
     f'{problem_statement}\n'
     '</pr_description>\n\n'
