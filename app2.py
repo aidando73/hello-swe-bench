@@ -36,4 +36,8 @@ response = completion(
     )}],
 )
 
-print(response)
+content = response['choices'][0]['message']['content']
+file_names = content.split(',')
+for file_name in file_names:
+    print(file_name.strip())
+# print(response['choices'][0]['message']['content'])
