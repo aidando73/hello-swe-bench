@@ -16,12 +16,21 @@ except FileNotFoundError:
 prompt = tree_output
 # print(prompt)
 
+with open('problem_statement.txt', 'r') as f:
+    problem_statement = f.read()
+
 response = completion(
     model=model,
     messages=[{"role": "user", "content": (
-        "<file_tree>\n"
-        prompt
-        "\n</file_tree>\n",
+        "<file_tree>\n" +
+        prompt +
+        "\n</file_tree>\n" +
+        "<problem_statement>\n" +
+        problem_statement +
+        "\n</problem_statement>\n" +
+        "You are a staff level software engineer.\n" +
+        "Please help me locate potential files in <file_tree> that contains the code that needs to be changed to fix the <problem_statement>.\n"
+        "Please return file names in the format of <file_names> separated by commas.\n"
     )}],
 )
 
