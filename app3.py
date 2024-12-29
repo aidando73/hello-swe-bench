@@ -1,6 +1,7 @@
 from litellm import completion
 
-model = "fireworks_ai/accounts/fireworks/models/llama-v3p1-405b-instruct"
+# model = "fireworks_ai/accounts/fireworks/models/llama-v3p1-405b-instruct"
+model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
 # model = "gpt-4o"
 
 import subprocess
