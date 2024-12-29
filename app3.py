@@ -24,9 +24,11 @@ tree_chunks = [
     tree_output[i:i + chunk_size] for i in range(0, len(tree_output), chunk_size)
 ][:4]  # Limit to 4 chunks in case of rounding
 
-# Ensure we have exactly 4 chunks
-while len(tree_chunks) < 4:
-    tree_chunks.append("")
+# Write chunks to separate files for debugging
+for i, chunk in enumerate(tree_chunks):
+    with open(f'tree_chunk_{i+1}.txt', 'w') as f:
+        f.write(chunk)
+
 
 with open('problem_statement.txt', 'r') as f:
     problem_statement = f.read()
