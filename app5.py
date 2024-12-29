@@ -4,6 +4,7 @@ from litellm import (
     ChatCompletionToolParamFunctionChunk,
     ModelResponse,
 )
+import json
 
 model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
 
@@ -108,6 +109,17 @@ for file_name in potential_files:
     if message.get('tool_calls') != None:
         function = message['tool_calls'][0]['function']
         print('\033[94m' + function['name'], function['arguments'] + '\033[0m')
+        try:
+            arguments = json.loads(function['arguments'])
+            if arguments['command'] == 'str_replace':
+                with open(f"django/{arguments['path']}", 'w') as f:
+                    old_str = arguments['old_str']
+                    new_str = arguments['new_str']
+                    f.write(file_content.replace(old_str, new_str))
+        except json.JSONDecodeError:
+            print('\033[91mInvalid JSON in tool call arguments.\033[0m')
+            continue
+
     else:
         print('\033[93mNo file names found in the response.\033[0m')
     print(f"Input tokens: {response['usage']['prompt_tokens']}", f"Output tokens: {response['usage']['completion_tokens']}")
