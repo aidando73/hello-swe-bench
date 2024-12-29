@@ -114,7 +114,7 @@ for file_name in potential_files:
             arguments = json.loads(function['arguments'])
             if arguments['command'] == 'str_replace':
                 try:
-                    with open(f"django/{arguments['path']}", 'w') as f:
+                    with open(f"django/{file_name}", 'w') as f:
                         old_str = arguments['old_str']
                         new_str = arguments['new_str']
                         f.write(file_content.replace(old_str, new_str))
