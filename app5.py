@@ -6,7 +6,8 @@ from litellm import (
 )
 import json
 
-model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
+# model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
+model = "anthropic/claude-3-5-sonnet-20240620"
 
 # Read in potential files
 with open('potential_files.txt', 'r') as f:
@@ -112,10 +113,14 @@ for file_name in potential_files:
         try:
             arguments = json.loads(function['arguments'])
             if arguments['command'] == 'str_replace':
-                with open(f"django/{arguments['path']}", 'w') as f:
-                    old_str = arguments['old_str']
-                    new_str = arguments['new_str']
-                    f.write(file_content.replace(old_str, new_str))
+                try:
+                    with open(f"django/{arguments['path']}", 'w') as f:
+                        old_str = arguments['old_str']
+                        new_str = arguments['new_str']
+                        f.write(file_content.replace(old_str, new_str))
+                except FileNotFoundError:
+                    print(f"File {arguments['path']} not found. Skipping...")
+                    continue
         except json.JSONDecodeError:
             print('\033[91mInvalid JSON in tool call arguments.\033[0m')
             continue
