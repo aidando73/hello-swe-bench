@@ -30,6 +30,7 @@ response = completion(
         "\n</problem_statement>\n" +
         "You are a staff level software engineer.\n" +
         "Please help me locate potential files in <file_tree> that contains the code that needs to be changed to fix the <problem_statement>.\n"
+        # This makes the model consistently return file names (through not in xml tags)
         "Please return file names in the format of <file_names> separated by commas.\n"
         # This reduces the number of files returned:
         # "For example, if the file names are 'app.py' and 'main.py', please return '<file_names>app.py,main.py</file_names>'.\n"
