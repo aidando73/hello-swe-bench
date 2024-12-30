@@ -7,6 +7,9 @@ from litellm import (
 import json
 import os
 
+model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
+
+
 SYSTEM_PROMPT_SUFFIX_TEMPLATE = """
 You are an agent that can interact with a computer to solve software engineering tasks.
 
@@ -129,8 +132,214 @@ def convert_tools_to_description(tools: list[dict]) -> str:
         ret += f'---- END FUNCTION #{i+1} ----\n'
     return ret
 
-
-# print(convert_tools_to_description([StrReplaceEditorTool]))
-
 system_prompt = SYSTEM_PROMPT_SUFFIX_TEMPLATE.format(description=convert_tools_to_description([StrReplaceEditorTool]))
 
+file_tree = os.popen("cd django && git ls-tree -r --name-only HEAD").read()
+
+with open("problem_statement.txt", "r") as f:
+    problem_statement = f.read()
+
+with open("sample_row.json", "r") as f:
+    sample_row = json.load(f)
+
+problem_statement = sample_row["problem_statement"]
+
+ITERATIONS = 5
+
+messages = [
+    {
+        "role": "system",
+        "content": system_prompt,
+    },
+    {
+        "role": "user",
+        "content": (
+            "<repository>\n"
+            + file_tree
+            + "\n</repository>\n"
+            + "<problem_statement>\n"
+            + problem_statement
+            + "\n</problem_statement>\n"
+            + "You are given a file tree in <repository> and a problem statement in <problem_statement>. Please fix the problem.\n"
+            # "Please include the <done> tag in your response when you are finished.\n"
+            # "You will be given a tool to run commands in the repository.\n" +
+            # "You will be given a tool to view the repository.\n" +
+            # "You will be given a tool to view the git diff of the repository.\n" +
+        ),
+    }
+]
+
+
+for i in range(ITERATIONS):
+    response = completion(
+        model=model,
+        messages=messages,
+        tools=[StrReplaceEditorTool],
+    )
+
+    message = response["choices"][0]["message"]
+    # print(message)
+    messages.append(message)
+    if message.get("tool_calls") != None:
+        function = message["tool_calls"][0]["function"]
+        id = message["tool_calls"][0]["id"]
+    else:
+        # Try to parse the response as a tool call
+        # In some cases, the response is not a tool call, but in the response
+        try:
+            function = json.loads(message["content"])
+            if (
+                function["type"] != "function"
+                or function["name"] != "str_replace_editor"
+            ):
+                function = None
+            else:
+                function = {
+                    "name": function["name"],
+                    "arguments": json.dumps(function["parameters"]),
+                }
+                import uuid
+                id = uuid.uuid4()
+        except json.JSONDecodeError:
+            function = None
+        except Exception as e:
+            print(f"Could not parse tool call: {e}")
+            import traceback
+
+            print(f"Could not parse tool call: {e}")
+            print("Stacktrace:")
+            print(traceback.format_exc())
+
+            function = None
+
+    if function:
+        try:
+            if "content" in message and message["content"] != None:
+                print("\033[95m" + message["content"] + "\033[0m")
+            arguments = json.loads(function["arguments"])
+            print(
+                "\033[94m" + function["name"],
+                json.dumps(arguments, indent=2) + "\033[0m",
+            )
+            if arguments["command"] == "str_replace":
+                try:
+                    with open(f"django/{arguments['path']}", "r") as f:
+                        file_content = f.read()
+                    with open(f"django/{arguments['path']}", "w") as f:
+                        old_str = arguments["old_str"]
+                        new_str = arguments["new_str"]
+                        new_content = file_content.replace(old_str, new_str)
+                        f.write(new_content)
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "name": function["name"],
+                                "tool_call_id": id,
+                                "content": f"Result: {new_content}",
+                            }
+                        )
+                except FileNotFoundError:
+                    print(f"File {arguments['path']} not found. Skipping...")
+            elif arguments["command"] == "insert":
+                try:
+                    with open(f"django/{arguments['path']}", "w") as f:
+                        line_number = arguments["insert_line"]
+                        lines = f.readlines()
+                        lines.insert(line_number, arguments["new_str"])
+                        f.writelines(lines)
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "name": function["name"],
+                                "tool_call_id": id,
+                                "content": f"Result: {f.read()}",
+                            }
+                        )
+                except FileNotFoundError:
+                    print(f"File {arguments['path']} not found. Skipping...")
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "name": function["name"],
+                            "tool_call_id": id,
+                            "content": f"Result: Error - File {arguments['path']} not found.",
+                        }
+                    )
+            elif arguments["command"] == "view":
+                try:
+                    with open(f"django/{arguments['path']}", "r") as f:
+                        file_content = f.read()
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "name": function["name"],
+                                "tool_call_id": id,
+                                "content": f"Result: {file_content}",
+                            }
+                        )
+                except FileNotFoundError:
+                    print(f"File {arguments['path']} not found. Skipping...")
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "name": function["name"],
+                            "tool_call_id": id,
+                            "content": f"Result: Error - File {arguments['path']} not found.",
+                        }
+                    )
+            elif arguments["command"] == "create":
+                try:
+                    with open(f"django/{arguments['path']}", "w") as f:
+                        f.write(arguments["file_text"])
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "name": function["name"],
+                                "tool_call_id": id,
+                                "content": f"Result: {f.read()}",
+                            }
+                        )
+                except FileNotFoundError:
+                    print(f"File {arguments['path']} not found. Skipping...")
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "name": function["name"],
+                            "tool_call_id": id,
+                            "content": f"Result: Error - File {arguments['path']} not found.",
+                        }
+                    )
+        except json.JSONDecodeError:
+            print("\033[91mInvalid JSON in tool call arguments.\033[0m")
+            messages.append(
+                {
+                    "role": "tool",
+                    "name": function["name"],
+                    "tool_call_id": id,
+                    "content": f"Result: Error - Invalid JSON in tool call arguments: {function['arguments']}",
+                }
+            )
+        except Exception as e:
+            print(f"Error - skipping: {e}")
+            import traceback
+            print("\033[91m" + "".join(traceback.format_exc()) + "\033[0m")
+            messages.append(
+                {
+                    "role": "tool",
+                    "name": function["name"],
+                    "tool_call_id": id,
+                    "content": f"Result: Error - {e}",
+                }
+            )
+
+    else:
+        print(message["content"])
+        # if "<done>" in message["content"]:
+        #     break
+    print(
+        f"Input tokens: {response['usage']['prompt_tokens']}",
+        f"Output tokens: {response['usage']['completion_tokens']}",
+    )
+    if "anthropic" in model:
+        import time
+        time.sleep(60)
