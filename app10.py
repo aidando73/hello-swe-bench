@@ -45,6 +45,14 @@ ReplaceInFileTool = {
     },
 }
 
+ViewFileTool = {
+    "tool_name": "view_file",
+    "description": "View a file",
+    "parameters": {
+        "path": {"description": "The path to the file to view.", "param_type": "string", "required": True},
+    },
+}
+
 ITERATIONS = 5
 
 messages = [
