@@ -85,6 +85,9 @@ history = []
 response = completion(
     model=model,
     messages=[{"role": "user", "content": (
+        "<history>\n" +
+        "\n".join(history) +
+        "\n</history>\n" +
         "<repository>\n" +
         file_tree +
         "\n</repository>\n" +
@@ -93,6 +96,7 @@ response = completion(
         "\n</problem_statement>\n" +
         "You are an expert software engineer.\n" +
         "You are given a file tree and a problem statement. Please fix the problem.\n" +
+        "The history of your previous actions is included in <history>.\n" +
         "Please start by using the str_replace_editor `view` tool to view relevant files in the repository.\n" +
         "Then use the str_replace_editor `str_replace` tool to edit the files.\n"
         # "You will be given a tool to run commands in the repository.\n" +
@@ -132,7 +136,9 @@ if message.get('tool_calls') != None:
         elif arguments['command'] == 'view':
             try:
                 with open(f"django/{arguments['path']}", 'r') as f:
-                    print(f.read())
+                    file_content = f.read()
+
+                history.append(f"File {arguments['path']}:\n{file_content}\n")
             except FileNotFoundError:
                 print(f"File {arguments['path']} not found. Skipping...")
         elif arguments["command"] == "create":
