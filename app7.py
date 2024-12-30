@@ -82,84 +82,89 @@ StrReplaceEditorTool = ChatCompletionToolParam(
 
 history = []
 
-response = completion(
-    model=model,
-    messages=[{"role": "user", "content": (
-        "<history>\n" +
-        "\n".join(history) +
-        "\n</history>\n" +
-        "<repository>\n" +
-        file_tree +
-        "\n</repository>\n" +
-        "<problem_statement>\n" +
-        problem_statement +
-        "\n</problem_statement>\n" +
-        "You are an expert software engineer.\n" +
-        "You are given a file tree and a problem statement. Please fix the problem.\n" +
-        "The history of your previous actions is included in <history>.\n" +
-        "Please start by using the str_replace_editor `view` tool to view relevant files in the repository.\n" +
-        "Then use the str_replace_editor `str_replace` tool to edit the files.\n"
-        # "You will be given a tool to run commands in the repository.\n" +
-        # "You will be given a tool to view the repository.\n" +
-        # "You will be given a tool to view the git diff of the repository.\n" +
-        # "You will be given a tool to view the git log of the repository.\n" +
-        # "You will be given a tool to view the git status of the repository.\n" +
-        # "You will be given a tool to view the git branch of the repository.\n" +
-        # "You will be given a tool to view the git commit of the repository.\n" +
-    )}],
-    tools=[StrReplaceEditorTool],
-)
+ITERATIONS = 10
 
-message = response['choices'][0]['message']
-if message.get('tool_calls') != None:
-    function = message['tool_calls'][0]['function']
-    try:
-        arguments = json.loads(function['arguments'])
-        print('\033[94m' + function['name'], json.dumps(arguments, indent=2) + '\033[0m')
-        history_item = f"{function['name']}: {json.dumps(arguments, indent=2)}"
-        if arguments['command'] == 'str_replace':
-            try:
-                with open(f"django/{arguments['path']}", 'w') as f:
-                    old_str = arguments['old_str']
-                    new_str = arguments['new_str']
-                    f.write(f.read().replace(old_str, new_str))
-            except FileNotFoundError:
-                print(f"File {arguments['path']} not found. Skipping...")
-                history_item += f"Result: Error - File {arguments['path']} not found."
-        elif arguments['command'] == 'insert':
-            try:
-                with open(f"django/{arguments['path']}", 'w') as f:
-                    line_number = arguments['insert_line']
-                    lines = f.readlines()
-                    lines.insert(line_number, arguments['new_str'])
-                    f.writelines(lines)
-            except FileNotFoundError:
-                print(f"File {arguments['path']} not found. Skipping...")
-                history_item += f"Result: Error - File {arguments['path']} not found."
-        elif arguments['command'] == 'view':
-            try:
-                with open(f"django/{arguments['path']}", 'r') as f:
-                    file_content = f.read()
-                    history_item += f"Result: {file_content}"
-            except FileNotFoundError:
-                print(f"File {arguments['path']} not found. Skipping...")
-                history_item += f"Result: Error - File {arguments['path']} not found."
-        elif arguments["command"] == "create":
-            try:
-                with open(f"django/{arguments['path']}", 'w') as f:
-                    f.write(arguments['file_text'])
-            except FileNotFoundError:
-                print(f"File {arguments['path']} not found. Skipping...")
-                history_item += f"Result: Error - File {arguments['path']} not found."
-        history.append(history_item)
-    except json.JSONDecodeError:
-        print('\033[91mInvalid JSON in tool call arguments.\033[0m')
-        history_item += f"Result: Error - Invalid JSON in tool call arguments: {function['arguments']}"
-    except Exception as e:
-        print(f"Error - skipping: {e}")
-        history_item += f"Result: Error - {e}"
+for i in range(ITERATIONS):
+    response = completion(
+        model=model,
+        messages=[{"role": "user", "content": (
+            "<history>\n" +
+            "\n".join(history) +
+            "\n</history>\n" +
+            "<repository>\n" +
+            file_tree +
+            "\n</repository>\n" +
+            "<problem_statement>\n" +
+            problem_statement +
+            "\n</problem_statement>\n" +
+            "You are an expert software engineer.\n" +
+            "You are given a file tree and a problem statement. Please fix the problem.\n" +
+            "The history of your previous actions is included in <history>.\n" +
+            "Please start by using the str_replace_editor `view` tool to view relevant files in the repository.\n" +
+            "Then use the str_replace_editor `str_replace` tool to edit the files.\n"
+            # "You will be given a tool to run commands in the repository.\n" +
+            # "You will be given a tool to view the repository.\n" +
+            # "You will be given a tool to view the git diff of the repository.\n" +
+            # "You will be given a tool to view the git log of the repository.\n" +
+            # "You will be given a tool to view the git status of the repository.\n" +
+            # "You will be given a tool to view the git branch of the repository.\n" +
+            # "You will be given a tool to view the git commit of the repository.\n" +
+        )}],
+        tools=[StrReplaceEditorTool],
+    )
 
-else:
-    print('\033[93mNo tool calls found in the response.\033[0m')
-    print(message['content'])
-print(f"Input tokens: {response['usage']['prompt_tokens']}", f"Output tokens: {response['usage']['completion_tokens']}")
+    message = response['choices'][0]['message']
+    if message.get('tool_calls') != None:
+        function = message['tool_calls'][0]['function']
+        try:
+            arguments = json.loads(function['arguments'])
+            print('\033[94m' + function['name'], json.dumps(arguments, indent=2) + '\033[0m')
+            history_item = f"{function['name']}: {json.dumps(arguments, indent=2)}"
+            if arguments['command'] == 'str_replace':
+                try:
+                    with open(f"django/{arguments['path']}", 'w') as f:
+                        old_str = arguments['old_str']
+                        new_str = arguments['new_str']
+                        f.write(f.read().replace(old_str, new_str))
+                except FileNotFoundError:
+                    print(f"File {arguments['path']} not found. Skipping...")
+                    history_item += f"Result: Error - File {arguments['path']} not found."
+            elif arguments['command'] == 'insert':
+                try:
+                    with open(f"django/{arguments['path']}", 'w') as f:
+                        line_number = arguments['insert_line']
+                        lines = f.readlines()
+                        lines.insert(line_number, arguments['new_str'])
+                        f.writelines(lines)
+                except FileNotFoundError:
+                    print(f"File {arguments['path']} not found. Skipping...")
+                    history_item += f"Result: Error - File {arguments['path']} not found."
+            elif arguments['command'] == 'view':
+                try:
+                    with open(f"django/{arguments['path']}", 'r') as f:
+                        file_content = f.read()
+                        history_item += f"Result: {file_content}"
+                except FileNotFoundError:
+                    print(f"File {arguments['path']} not found. Skipping...")
+                    history_item += f"Result: Error - File {arguments['path']} not found."
+            elif arguments["command"] == "create":
+                try:
+                    with open(f"django/{arguments['path']}", 'w') as f:
+                        f.write(arguments['file_text'])
+                except FileNotFoundError:
+                    print(f"File {arguments['path']} not found. Skipping...")
+                    history_item += f"Result: Error - File {arguments['path']} not found."
+            history.append(history_item)
+        except json.JSONDecodeError:
+            print('\033[91mInvalid JSON in tool call arguments.\033[0m')
+            history_item += f"Result: Error - Invalid JSON in tool call arguments: {function['arguments']}"
+        except Exception as e:
+            print(f"Error - skipping: {e}")
+            history_item += f"Result: Error - {e}"
+
+    else:
+        print('\033[93mNo tool calls found in the response.\033[0m')
+        print(message['content'])
+    print(f"Input tokens: {response['usage']['prompt_tokens']}", f"Output tokens: {response['usage']['completion_tokens']}")
+
+print("Loop finished")
