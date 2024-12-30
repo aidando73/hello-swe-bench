@@ -49,7 +49,6 @@ ViewFileTool = {
     "tool_name": "view_file",
     "description": "View a file",
     "parameters": {
-        # TOOD - try absolute paths here
         "path": {
             "description": "The absolute path to the file to view, e.g. `/Users/aidand/dev/django/file.py` or `/Users/aidand/dev/django`.",
             "param_type": "string",
@@ -78,6 +77,8 @@ messages = [
             + "You have the following tools to use:\n"
             + json.dumps(ReplaceInFileTool, indent=2) + "\n"
             + json.dumps(ViewFileTool, indent=2) + "\n"
+            + "Please start by viewing files in the repository to understand the problem.\n"
+            + "Please explain your reasoning before you make any edits in a <thinking> tag.\n"
             # "Please include the <done> tag in your response when you are finished.\n"
             # "You will be given a tool to run commands in the repository.\n" +
             # "You will be given a tool to view the repository.\n" +
@@ -102,10 +103,11 @@ for i in range(ITERATIONS):
     )
     message = response.completion_message
     messages.append(message)
-    if message.content is not None:
-        print(message.content)
+    if message.tool_calls:
+        print(message.tool_calls)
     else:
-        print(message)
+        print(message.content)
+
 
 #     message = response["choices"][0]["message"]
 #     # print(message)
