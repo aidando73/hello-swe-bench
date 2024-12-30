@@ -100,8 +100,10 @@ for i in range(ITERATIONS):
             "You are an expert software engineer.\n" +
             "You are given a file tree and a problem statement. Please fix the problem.\n" +
             "The history of your previous actions is included in <history>.\n" +
-            "Please start by using the str_replace_editor `view` tool to view relevant files in the repository.\n" +
-            "Then use the str_replace_editor `str_replace` tool to edit the files.\n"
+            # "Please start by using the str_replace_editor `view` tool to view relevant files in the repository.\n" +
+            # "Then use the str_replace_editor `str_replace` tool to edit the files.\n"
+            "You have the str_replace_editor tool to view, create, edit and undo files in the repository.\n"
+            "Please include the <done> tag in your response when you are finished.\n"
             # "You will be given a tool to run commands in the repository.\n" +
             # "You will be given a tool to view the repository.\n" +
             # "You will be given a tool to view the git diff of the repository.\n" +
@@ -116,7 +118,26 @@ for i in range(ITERATIONS):
     message = response['choices'][0]['message']
     if message.get('tool_calls') != None:
         function = message['tool_calls'][0]['function']
+    else:
+        # Try to parse the response as a tool call
+        # In some cases, the response is not a tool call, but in the response
         try:
+            function = json.loads(message['content'])
+            if function["type"] != "function" or function["name"] != "str_replace_editor":
+                function = None
+            else:
+                function = function["function"]
+                if "parameters" in function:
+                    function["arguments"] = function["parameters"]
+        except json.JSONDecodeError:
+            function = None
+        except Exception as e:
+            print(f"Could not parse tool call: {e}")
+            function = None
+
+    if function:
+        try:
+            history_item = ""
             arguments = json.loads(function['arguments'])
             print('\033[94m' + function['name'], json.dumps(arguments, indent=2) + '\033[0m')
             history_item = f"{function['name']}: {json.dumps(arguments, indent=2)}"
@@ -163,8 +184,9 @@ for i in range(ITERATIONS):
             history_item += f"Result: Error - {e}"
 
     else:
-        print('\033[93mNo tool calls found in the response.\033[0m')
         print(message['content'])
+        if "<done>" in message['content']:
+            break
     print(f"Input tokens: {response['usage']['prompt_tokens']}", f"Output tokens: {response['usage']['completion_tokens']}")
 
 print("Loop finished")
