@@ -3,6 +3,7 @@
 
 echo "Copying django to OpenHands workspace"
 
+trash /Users/aidand/dev/OpenHands/workspace/django
 cp -r django/ /Users/aidand/dev/OpenHands/workspace/django
 trash /Users/aidand/dev/OpenHands/workspace/django/env
 trash /Users/aidand/dev/OpenHands/workspace/django/test.patch
