@@ -126,13 +126,19 @@ for i in range(ITERATIONS):
             if function["type"] != "function" or function["name"] != "str_replace_editor":
                 function = None
             else:
-                function = function["function"]
-                if "parameters" in function:
-                    function["arguments"] = function["parameters"]
+                function = {
+                    "name": function["name"],
+                    "arguments": json.dumps(function["parameters"])
+                }
         except json.JSONDecodeError:
             function = None
         except Exception as e:
             print(f"Could not parse tool call: {e}")
+            import traceback
+            print(f"Could not parse tool call: {e}")
+            print("Stacktrace:")
+            print(traceback.format_exc())
+
             function = None
 
     if function:
