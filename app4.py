@@ -38,6 +38,10 @@ for i, chunk in enumerate(tree_chunks):
 with open('problem_statement.txt', 'r') as f:
     problem_statement = f.read()
 
+import json
+# Open and read sample_row.json
+with open('sample_row.json', 'r') as f:
+    sample_row = json.load(f)
 
 potential_files = []
 for prompt in tree_chunks:

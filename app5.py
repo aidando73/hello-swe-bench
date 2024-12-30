@@ -13,9 +13,13 @@ model = "anthropic/claude-3-5-sonnet-20240620"
 with open('potential_files.txt', 'r') as f:
     potential_files = [line.strip() for line in f.readlines()]
 
-with open('problem_statement.txt', 'r') as f:
-    problem_statement = f.read()
+# with open('problem_statement.txt', 'r') as f:
+#     problem_statement = f.read()
 
+with open('sample_row.json', 'r') as f:
+    sample_row = json.load(f)
+
+problem_statement = sample_row['problem_statement']
 
 _STR_REPLACE_EDITOR_DESCRIPTION = """Custom editing tool for viewing, creating and editing files
 * State is persistent across command calls and discussions with the user
@@ -109,7 +113,7 @@ for file_name in potential_files:
     message = response['choices'][0]['message']
     if message.get('tool_calls') != None:
         function = message['tool_calls'][0]['function']
-        print('\033[94m' + function['name'], function['arguments'] + '\033[0m')
+        print('\033[94m' + function['name'], json.dumps(function['arguments'], indent=2) + '\033[0m')
         try:
             arguments = json.loads(function['arguments'])
             if arguments['command'] == 'str_replace':
