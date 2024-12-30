@@ -27,6 +27,8 @@ sample_row = df_django_5.iloc[instance_idx]
 with open('current_instance.txt', 'w') as f:
     f.write(str(instance_idx))
 
+print(f"Setting up instance: {sample_row['instance_id']}, instance_idx: {instance_idx}")
+
 import json
 
 with open('sample_row.json', 'w') as f:
