@@ -8,7 +8,8 @@ import json
 import os
 
 # model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
-model = "anthropic/claude-3-5-sonnet-20240620"
+model = "fireworks_ai/accounts/fireworks/models/llama-v3p1-405b-instruct"
+# model = "anthropic/claude-3-5-sonnet-20240620"
 
 # git ls-tree -r --name-only HEAD
 
@@ -89,7 +90,7 @@ response = completion(
         problem_statement +
         "\n</problem_statement>\n" +
         "You are an expert software engineer.\n" +
-        "You are given a file tree and a problem statement. Please make a plan to fix the problem statement.\n" +
+        "You are given a file tree and a problem statement. Please fix the problem.\n" +
         "You will be given a tool to edit files in the repository.\n"
         # "You will be given a tool to run commands in the repository.\n" +
         # "You will be given a tool to view the repository.\n" +
@@ -143,5 +144,6 @@ if message.get('tool_calls') != None:
         print(f"Error - skipping: {e}")
 
 else:
-    print('\033[93mNo file names found in the response.\033[0m')
+    print('\033[93mNo tool calls found in the response.\033[0m')
+    print(message['content'])
 print(f"Input tokens: {response['usage']['prompt_tokens']}", f"Output tokens: {response['usage']['completion_tokens']}")
