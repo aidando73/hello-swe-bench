@@ -80,6 +80,8 @@ StrReplaceEditorTool = ChatCompletionToolParam(
     ),
 )
 
+history = []
+
 response = completion(
     model=model,
     messages=[{"role": "user", "content": (
