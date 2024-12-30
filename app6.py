@@ -139,6 +139,8 @@ if message.get('tool_calls') != None:
                 print(f"File {arguments['path']} not found. Skipping...")
     except json.JSONDecodeError:
         print('\033[91mInvalid JSON in tool call arguments.\033[0m')
+    except Exception as e:
+        print(f"Error - skipping: {e}")
 
 else:
     print('\033[93mNo file names found in the response.\033[0m')
