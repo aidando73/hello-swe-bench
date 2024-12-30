@@ -151,6 +151,8 @@ for i in range(ITERATIONS):
 
     if function:
         try:
+            if "content" in message and message["content"] != None:
+                print("\033[95m" + message["content"] + "\033[0m")
             arguments = json.loads(function["arguments"])
             print(
                 "\033[94m" + function["name"],
@@ -253,6 +255,8 @@ for i in range(ITERATIONS):
             )
         except Exception as e:
             print(f"Error - skipping: {e}")
+            import traceback
+            print("\033[91m" + "".join(traceback.format_exc()) + "\033[0m")
             messages.append(
                 {
                     "role": "tool",
