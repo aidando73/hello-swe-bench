@@ -22,3 +22,4 @@ potential_files.txt
 sample_row.json
 gold.patch
 current_instance.txt
+logs/

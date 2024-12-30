@@ -11,4 +11,6 @@ brew install tree
 (cd django && git reset --hard HEAD) && python app5.py && (cd django && git --no-pager diff)
 # Validate tests
 python validate5.py
+
+python setup5.py && python validate5.py
 ```
