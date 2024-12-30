@@ -33,7 +33,6 @@ with open('sample_row.json', 'w') as f:
     json.dump(sample_row.to_dict(), f)
 
 
-# sample_row = df_django_5.sample(n=1).iloc[0]
 commit = sample_row['base_commit']
 
 print(f"Checking out commit {commit}")
