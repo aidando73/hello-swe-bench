@@ -80,7 +80,7 @@ StrReplaceEditorTool = ChatCompletionToolParam(
     ),
 )
 
-ITERATIONS = 10
+ITERATIONS = 5
 
 messages = [
     {
@@ -95,7 +95,7 @@ messages = [
             + "You are an expert software engineer.\n"
             + "You are given a file tree and a problem statement. Please fix the problem.\n"
             + "You have the str_replace_editor tool to view, create, edit and undo files in the repository.\n"
-            "Please include the <done> tag in your response when you are finished.\n"
+            # "Please include the <done> tag in your response when you are finished.\n"
             # "You will be given a tool to run commands in the repository.\n" +
             # "You will be given a tool to view the repository.\n" +
             # "You will be given a tool to view the git diff of the repository.\n" +
@@ -119,6 +119,7 @@ for i in range(ITERATIONS):
     messages.append(message)
     if message.get("tool_calls") != None:
         function = message["tool_calls"][0]["function"]
+        id = message["tool_calls"][0]["id"]
     else:
         # Try to parse the response as a tool call
         # In some cases, the response is not a tool call, but in the response
@@ -134,6 +135,8 @@ for i in range(ITERATIONS):
                     "name": function["name"],
                     "arguments": json.dumps(function["parameters"]),
                 }
+                import uuid
+                id = uuid.uuid4()
         except json.JSONDecodeError:
             function = None
         except Exception as e:
@@ -162,6 +165,8 @@ for i in range(ITERATIONS):
                         messages.append(
                             {
                                 "role": "tool",
+                                "name": function["name"],
+                                "tool_call_id": id,
                                 "content": f"Result: {f.read()}",
                             }
                         )
@@ -177,11 +182,21 @@ for i in range(ITERATIONS):
                         messages.append(
                             {
                                 "role": "tool",
+                                "name": function["name"],
+                                "tool_call_id": id,
                                 "content": f"Result: {f.read()}",
                             }
                         )
                 except FileNotFoundError:
                     print(f"File {arguments['path']} not found. Skipping...")
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "name": function["name"],
+                            "tool_call_id": id,
+                            "content": f"Result: Error - File {arguments['path']} not found.",
+                        }
+                    )
             elif arguments["command"] == "view":
                 try:
                     with open(f"django/{arguments['path']}", "r") as f:
@@ -189,11 +204,21 @@ for i in range(ITERATIONS):
                         messages.append(
                             {
                                 "role": "tool",
+                                "name": function["name"],
+                                "tool_call_id": id,
                                 "content": f"Result: {file_content}",
                             }
                         )
                 except FileNotFoundError:
                     print(f"File {arguments['path']} not found. Skipping...")
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "name": function["name"],
+                            "tool_call_id": id,
+                            "content": f"Result: Error - File {arguments['path']} not found.",
+                        }
+                    )
             elif arguments["command"] == "create":
                 try:
                     with open(f"django/{arguments['path']}", "w") as f:
@@ -201,23 +226,51 @@ for i in range(ITERATIONS):
                         messages.append(
                             {
                                 "role": "tool",
+                                "name": function["name"],
+                                "tool_call_id": id,
                                 "content": f"Result: {f.read()}",
                             }
                         )
                 except FileNotFoundError:
                     print(f"File {arguments['path']} not found. Skipping...")
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "name": function["name"],
+                            "tool_call_id": id,
+                            "content": f"Result: Error - File {arguments['path']} not found.",
+                        }
+                    )
         except json.JSONDecodeError:
             print("\033[91mInvalid JSON in tool call arguments.\033[0m")
+            messages.append(
+                {
+                    "role": "tool",
+                    "name": function["name"],
+                    "tool_call_id": id,
+                    "content": f"Result: Error - Invalid JSON in tool call arguments: {function['arguments']}",
+                }
+            )
         except Exception as e:
             print(f"Error - skipping: {e}")
+            messages.append(
+                {
+                    "role": "tool",
+                    "name": function["name"],
+                    "tool_call_id": id,
+                    "content": f"Result: Error - {e}",
+                }
+            )
 
     else:
         print(message["content"])
-        if "<done>" in message["content"]:
-            break
+        # if "<done>" in message["content"]:
+        #     break
     print(
         f"Input tokens: {response['usage']['prompt_tokens']}",
         f"Output tokens: {response['usage']['completion_tokens']}",
     )
 
 # print("Loop finished")
+with open("messages.json", "w") as f:
+    json.dump([message.model_dump() if hasattr(message, 'model_dump') else message for message in messages], f, indent=2)
