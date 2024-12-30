@@ -28,7 +28,7 @@ ReplaceInFileTool = {
     "description": "Replace a string in a file",
     "parameters": {
         "path": {
-            "description": "Absolute path to file or directory, e.g. `/workspace/file.py` or `/workspace`.",
+            "description": "Absolute path to file or directory, e.g. `/Users/aidand/dev/django/file.py` or `/Users/aidand/dev/django`.",
             "param_type": "string",
             "required": True,
         },
@@ -50,7 +50,11 @@ ViewFileTool = {
     "description": "View a file",
     "parameters": {
         # TOOD - try absolute paths here
-        "path": {"description": "The path to the file to view.", "param_type": "string", "required": True},
+        "path": {
+            "description": "The absolute path to the file to view, e.g. `/Users/aidand/dev/django/file.py` or `/Users/aidand/dev/django`.",
+            "param_type": "string",
+            "required": True,
+        },
     },
 }
 
@@ -60,7 +64,10 @@ messages = [
     {
         "role": "user",
         "content": (
-            "<repository>\n"
+            "<working_directory>\n"
+            + os.getcwd() + "/django\n"
+            + "</working_directory>\n"
+            + "<repository>\n"
             + file_tree
             + "\n</repository>\n"
             + "<problem_statement>\n"
@@ -90,7 +97,7 @@ for i in range(ITERATIONS):
     response = client.inference.chat_completion(
         model_id=MODEL_ID,
         messages=messages,
-        tools=[StrReplaceEditorTool],
+        tools=[ReplaceInFileTool, ViewFileTool],
         tool_prompt_format=tool_prompt_format,
     )
     message = response.completion_message
