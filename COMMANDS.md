@@ -30,4 +30,8 @@ brew install coreutils
 swekit scaffold swe -f crewai -o swe
 cd swe/agent
 python agent.py
+
+# Example issue and PR
+Repo: aidando73/bitbucket-syntax-highlighting
+ID: #77
 ```
