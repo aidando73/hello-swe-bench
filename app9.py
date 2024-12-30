@@ -132,6 +132,208 @@ def convert_tools_to_description(tools: list[dict]) -> str:
         ret += f'---- END FUNCTION #{i+1} ----\n'
     return ret
 
+def convert_non_fncall_messages_to_fncall_messages(
+    messages: list[dict],
+    tools: list[ChatCompletionToolParam],
+) -> list[dict]:
+    """Convert non-function calling messages back to function calling messages."""
+    messages = copy.deepcopy(messages)
+    formatted_tools = convert_tools_to_description(tools)
+    system_prompt_suffix = SYSTEM_PROMPT_SUFFIX_TEMPLATE.format(
+        description=formatted_tools
+    )
+
+    converted_messages = []
+    tool_call_counter = 1  # Counter for tool calls
+
+    first_user_message_encountered = False
+    for message in messages:
+        role, content = message['role'], message['content']
+        content = content or ''  # handle cases where content is None
+        # For system messages, remove the added suffix
+        if role == 'system':
+            if isinstance(content, str):
+                # Remove the suffix if present
+                content = content.split(system_prompt_suffix)[0]
+            elif isinstance(content, list):
+                if content and content[-1]['type'] == 'text':
+                    # Remove the suffix from the last text item
+                    content[-1]['text'] = content[-1]['text'].split(
+                        system_prompt_suffix
+                    )[0]
+            converted_messages.append({'role': 'system', 'content': content})
+        # Skip user messages (no conversion needed)
+        elif role == 'user':
+            # Check & replace in-context learning example
+            if not first_user_message_encountered:
+                first_user_message_encountered = True
+                if isinstance(content, str):
+                    content = content.replace(IN_CONTEXT_LEARNING_EXAMPLE_PREFIX, '')
+                    content = content.replace(IN_CONTEXT_LEARNING_EXAMPLE_SUFFIX, '')
+                elif isinstance(content, list):
+                    for item in content:
+                        if item['type'] == 'text':
+                            item['text'] = item['text'].replace(
+                                IN_CONTEXT_LEARNING_EXAMPLE_PREFIX, ''
+                            )
+                            item['text'] = item['text'].replace(
+                                IN_CONTEXT_LEARNING_EXAMPLE_SUFFIX, ''
+                            )
+                else:
+                    raise FunctionCallConversionError(
+                        f'Unexpected content type {type(content)}. Expected str or list. Content: {content}'
+                    )
+
+            # Check for tool execution result pattern
+            if isinstance(content, str):
+                tool_result_match = re.search(
+                    TOOL_RESULT_REGEX_PATTERN, content, re.DOTALL
+                )
+            elif isinstance(content, list):
+                tool_result_match = next(
+                    (
+                        _match
+                        for item in content
+                        if item.get('type') == 'text'
+                        and (
+                            _match := re.search(
+                                TOOL_RESULT_REGEX_PATTERN, item['text'], re.DOTALL
+                            )
+                        )
+                    ),
+                    None,
+                )
+            else:
+                raise FunctionCallConversionError(
+                    f'Unexpected content type {type(content)}. Expected str or list. Content: {content}'
+                )
+
+            if tool_result_match:
+                if not (
+                    isinstance(content, str)
+                    or (
+                        isinstance(content, list)
+                        and len(content) == 1
+                        and content[0].get('type') == 'text'
+                    )
+                ):
+                    raise FunctionCallConversionError(
+                        f'Expected str or list with one text item when tool result is present in the message. Content: {content}'
+                    )
+                tool_name = tool_result_match.group(1)
+                tool_result = tool_result_match.group(2).strip()
+
+                # Convert to tool message format
+                converted_messages.append(
+                    {
+                        'role': 'tool',
+                        'name': tool_name,
+                        'content': [{'type': 'text', 'text': tool_result}]
+                        if isinstance(content, list)
+                        else tool_result,
+                        'tool_call_id': f'toolu_{tool_call_counter-1:02d}',  # Use last generated ID
+                    }
+                )
+            else:
+                converted_messages.append({'role': 'user', 'content': content})
+
+        # Handle assistant messages
+        elif role == 'assistant':
+            if isinstance(content, str):
+                content = _fix_stopword(content)
+                fn_match = re.search(FN_REGEX_PATTERN, content, re.DOTALL)
+            elif isinstance(content, list):
+                if content and content[-1]['type'] == 'text':
+                    content[-1]['text'] = _fix_stopword(content[-1]['text'])
+                    fn_match = re.search(
+                        FN_REGEX_PATTERN, content[-1]['text'], re.DOTALL
+                    )
+                else:
+                    fn_match = None
+                fn_match_exists = any(
+                    item.get('type') == 'text'
+                    and re.search(FN_REGEX_PATTERN, item['text'], re.DOTALL)
+                    for item in content
+                )
+                if fn_match_exists and not fn_match:
+                    raise FunctionCallConversionError(
+                        f'Expecting function call in the LAST index of content list. But got content={content}'
+                    )
+            else:
+                raise FunctionCallConversionError(
+                    f'Unexpected content type {type(content)}. Expected str or list. Content: {content}'
+                )
+
+            if fn_match:
+                fn_name = fn_match.group(1)
+                fn_body = fn_match.group(2)
+                matching_tool = next(
+                    (
+                        tool['function']
+                        for tool in tools
+                        if tool['type'] == 'function'
+                        and tool['function']['name'] == fn_name
+                    ),
+                    None,
+                )
+                # Validate function exists in tools
+                if not matching_tool:
+                    raise FunctionCallValidationError(
+                        f"Function '{fn_name}' not found in available tools: {[tool['function']['name'] for tool in tools if tool['type'] == 'function']}"
+                    )
+
+                # Parse parameters
+                param_matches = re.finditer(FN_PARAM_REGEX_PATTERN, fn_body, re.DOTALL)
+                params = _extract_and_validate_params(
+                    matching_tool, param_matches, fn_name
+                )
+
+                # Create tool call with unique ID
+                tool_call_id = f'toolu_{tool_call_counter:02d}'
+                tool_call = {
+                    'index': 1,  # always 1 because we only support **one tool call per message**
+                    'id': tool_call_id,
+                    'type': 'function',
+                    'function': {'name': fn_name, 'arguments': json.dumps(params)},
+                }
+                tool_call_counter += 1  # Increment counter
+
+                # Remove the function call part from content
+                if isinstance(content, list):
+                    assert content and content[-1]['type'] == 'text'
+                    content[-1]['text'] = (
+                        content[-1]['text'].split('<function=')[0].strip()
+                    )
+                elif isinstance(content, str):
+                    content = content.split('<function=')[0].strip()
+                else:
+                    raise FunctionCallConversionError(
+                        f'Unexpected content type {type(content)}. Expected str or list. Content: {content}'
+                    )
+
+                converted_messages.append(
+                    {'role': 'assistant', 'content': content, 'tool_calls': [tool_call]}
+                )
+            else:
+                # No function call, keep message as is
+                converted_messages.append(message)
+
+        else:
+            raise FunctionCallConversionError(
+                f'Unexpected role {role}. Expected system, user, or assistant in non-function calling messages.'
+            )
+    return converted_messages
+
+class FunctionCallConversionError(Exception):
+    """Exception raised when FunctionCallingConverter failed to convert a non-function call message to a function call message.
+
+    This typically happens when there's a malformed message (e.g., missing <function=...> tags). But not due to LLM output.
+    """
+
+    def __init__(self, message):
+        super().__init__(message)
+
+
 system_prompt = SYSTEM_PROMPT_SUFFIX_TEMPLATE.format(description=convert_tools_to_description([StrReplaceEditorTool]))
 
 file_tree = os.popen("cd django && git ls-tree -r --name-only HEAD").read()
@@ -174,172 +376,15 @@ for i in range(ITERATIONS):
     response = completion(
         model=model,
         messages=messages,
-        tools=[StrReplaceEditorTool],
     )
 
     message = response["choices"][0]["message"]
-    # print(message)
+
     messages.append(message)
-    if message.get("tool_calls") != None:
-        function = message["tool_calls"][0]["function"]
-        id = message["tool_calls"][0]["id"]
-    else:
-        # Try to parse the response as a tool call
-        # In some cases, the response is not a tool call, but in the response
-        try:
-            function = json.loads(message["content"])
-            if (
-                function["type"] != "function"
-                or function["name"] != "str_replace_editor"
-            ):
-                function = None
-            else:
-                function = {
-                    "name": function["name"],
-                    "arguments": json.dumps(function["parameters"]),
-                }
-                import uuid
-                id = uuid.uuid4()
-        except json.JSONDecodeError:
-            function = None
-        except Exception as e:
-            print(f"Could not parse tool call: {e}")
-            import traceback
+    messages = convert_non_fncall_messages_to_fncall_messages(messages, [StrReplaceEditorTool])
 
-            print(f"Could not parse tool call: {e}")
-            print("Stacktrace:")
-            print(traceback.format_exc())
+    print(message)
 
-            function = None
 
-    if function:
-        try:
-            if "content" in message and message["content"] != None:
-                print("\033[95m" + message["content"] + "\033[0m")
-            arguments = json.loads(function["arguments"])
-            print(
-                "\033[94m" + function["name"],
-                json.dumps(arguments, indent=2) + "\033[0m",
-            )
-            if arguments["command"] == "str_replace":
-                try:
-                    with open(f"django/{arguments['path']}", "r") as f:
-                        file_content = f.read()
-                    with open(f"django/{arguments['path']}", "w") as f:
-                        old_str = arguments["old_str"]
-                        new_str = arguments["new_str"]
-                        new_content = file_content.replace(old_str, new_str)
-                        f.write(new_content)
-                        messages.append(
-                            {
-                                "role": "tool",
-                                "name": function["name"],
-                                "tool_call_id": id,
-                                "content": f"Result: {new_content}",
-                            }
-                        )
-                except FileNotFoundError:
-                    print(f"File {arguments['path']} not found. Skipping...")
-            elif arguments["command"] == "insert":
-                try:
-                    with open(f"django/{arguments['path']}", "w") as f:
-                        line_number = arguments["insert_line"]
-                        lines = f.readlines()
-                        lines.insert(line_number, arguments["new_str"])
-                        f.writelines(lines)
-                        messages.append(
-                            {
-                                "role": "tool",
-                                "name": function["name"],
-                                "tool_call_id": id,
-                                "content": f"Result: {f.read()}",
-                            }
-                        )
-                except FileNotFoundError:
-                    print(f"File {arguments['path']} not found. Skipping...")
-                    messages.append(
-                        {
-                            "role": "tool",
-                            "name": function["name"],
-                            "tool_call_id": id,
-                            "content": f"Result: Error - File {arguments['path']} not found.",
-                        }
-                    )
-            elif arguments["command"] == "view":
-                try:
-                    with open(f"django/{arguments['path']}", "r") as f:
-                        file_content = f.read()
-                        messages.append(
-                            {
-                                "role": "tool",
-                                "name": function["name"],
-                                "tool_call_id": id,
-                                "content": f"Result: {file_content}",
-                            }
-                        )
-                except FileNotFoundError:
-                    print(f"File {arguments['path']} not found. Skipping...")
-                    messages.append(
-                        {
-                            "role": "tool",
-                            "name": function["name"],
-                            "tool_call_id": id,
-                            "content": f"Result: Error - File {arguments['path']} not found.",
-                        }
-                    )
-            elif arguments["command"] == "create":
-                try:
-                    with open(f"django/{arguments['path']}", "w") as f:
-                        f.write(arguments["file_text"])
-                        messages.append(
-                            {
-                                "role": "tool",
-                                "name": function["name"],
-                                "tool_call_id": id,
-                                "content": f"Result: {f.read()}",
-                            }
-                        )
-                except FileNotFoundError:
-                    print(f"File {arguments['path']} not found. Skipping...")
-                    messages.append(
-                        {
-                            "role": "tool",
-                            "name": function["name"],
-                            "tool_call_id": id,
-                            "content": f"Result: Error - File {arguments['path']} not found.",
-                        }
-                    )
-        except json.JSONDecodeError:
-            print("\033[91mInvalid JSON in tool call arguments.\033[0m")
-            messages.append(
-                {
-                    "role": "tool",
-                    "name": function["name"],
-                    "tool_call_id": id,
-                    "content": f"Result: Error - Invalid JSON in tool call arguments: {function['arguments']}",
-                }
-            )
-        except Exception as e:
-            print(f"Error - skipping: {e}")
-            import traceback
-            print("\033[91m" + "".join(traceback.format_exc()) + "\033[0m")
-            messages.append(
-                {
-                    "role": "tool",
-                    "name": function["name"],
-                    "tool_call_id": id,
-                    "content": f"Result: Error - {e}",
-                }
-            )
-
-    else:
-        print(message["content"])
-        # if "<done>" in message["content"]:
-        #     break
-    print(
-        f"Input tokens: {response['usage']['prompt_tokens']}",
-        f"Output tokens: {response['usage']['completion_tokens']}",
-    )
-    if "anthropic" in model:
-        import time
-        time.sleep(60)
+with open(f"messages.json", "w") as f:
+    json.dump([message.model_dump() for message in messages], f)
