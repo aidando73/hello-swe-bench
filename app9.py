@@ -6,8 +6,12 @@ from litellm import (
 )
 import json
 import os
+import copy
+import re
+from fn_call_converter import convert_non_fncall_messages_to_fncall_messages, convert_tools_to_description
 
-model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
+# model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
+model = "fireworks_ai/accounts/fireworks/models/llama-v3p1-405b-instruct"
 
 
 SYSTEM_PROMPT_SUFFIX_TEMPLATE = """
@@ -94,246 +98,6 @@ StrReplaceEditorTool = ChatCompletionToolParam(
     ),
 )
 
-def convert_tools_to_description(tools: list[dict]) -> str:
-    ret = ''
-    for i, tool in enumerate(tools):
-        assert tool['type'] == 'function'
-        fn = tool['function']
-        if i > 0:
-            ret += '\n'
-        ret += f"---- BEGIN FUNCTION #{i+1}: {fn['name']} ----\n"
-        ret += f"Description: {fn['description']}\n"
-
-        if 'parameters' in fn:
-            ret += 'Parameters:\n'
-            properties = fn['parameters'].get('properties', {})
-            required_params = set(fn['parameters'].get('required', []))
-
-            for j, (param_name, param_info) in enumerate(properties.items()):
-                # Indicate required/optional in parentheses with type
-                is_required = param_name in required_params
-                param_status = 'required' if is_required else 'optional'
-                param_type = param_info.get('type', 'string')
-
-                # Get parameter description
-                desc = param_info.get('description', 'No description provided')
-
-                # Handle enum values if present
-                if 'enum' in param_info:
-                    enum_values = ', '.join(f'`{v}`' for v in param_info['enum'])
-                    desc += f'\nAllowed values: [{enum_values}]'
-
-                ret += (
-                    f'  ({j+1}) {param_name} ({param_type}, {param_status}): {desc}\n'
-                )
-        else:
-            ret += 'No parameters are required for this function.\n'
-
-        ret += f'---- END FUNCTION #{i+1} ----\n'
-    return ret
-
-def convert_non_fncall_messages_to_fncall_messages(
-    messages: list[dict],
-    tools: list[ChatCompletionToolParam],
-) -> list[dict]:
-    """Convert non-function calling messages back to function calling messages."""
-    messages = copy.deepcopy(messages)
-    formatted_tools = convert_tools_to_description(tools)
-    system_prompt_suffix = SYSTEM_PROMPT_SUFFIX_TEMPLATE.format(
-        description=formatted_tools
-    )
-
-    converted_messages = []
-    tool_call_counter = 1  # Counter for tool calls
-
-    first_user_message_encountered = False
-    for message in messages:
-        role, content = message['role'], message['content']
-        content = content or ''  # handle cases where content is None
-        # For system messages, remove the added suffix
-        if role == 'system':
-            if isinstance(content, str):
-                # Remove the suffix if present
-                content = content.split(system_prompt_suffix)[0]
-            elif isinstance(content, list):
-                if content and content[-1]['type'] == 'text':
-                    # Remove the suffix from the last text item
-                    content[-1]['text'] = content[-1]['text'].split(
-                        system_prompt_suffix
-                    )[0]
-            converted_messages.append({'role': 'system', 'content': content})
-        # Skip user messages (no conversion needed)
-        elif role == 'user':
-            # Check & replace in-context learning example
-            if not first_user_message_encountered:
-                first_user_message_encountered = True
-                if isinstance(content, str):
-                    content = content.replace(IN_CONTEXT_LEARNING_EXAMPLE_PREFIX, '')
-                    content = content.replace(IN_CONTEXT_LEARNING_EXAMPLE_SUFFIX, '')
-                elif isinstance(content, list):
-                    for item in content:
-                        if item['type'] == 'text':
-                            item['text'] = item['text'].replace(
-                                IN_CONTEXT_LEARNING_EXAMPLE_PREFIX, ''
-                            )
-                            item['text'] = item['text'].replace(
-                                IN_CONTEXT_LEARNING_EXAMPLE_SUFFIX, ''
-                            )
-                else:
-                    raise FunctionCallConversionError(
-                        f'Unexpected content type {type(content)}. Expected str or list. Content: {content}'
-                    )
-
-            # Check for tool execution result pattern
-            if isinstance(content, str):
-                tool_result_match = re.search(
-                    TOOL_RESULT_REGEX_PATTERN, content, re.DOTALL
-                )
-            elif isinstance(content, list):
-                tool_result_match = next(
-                    (
-                        _match
-                        for item in content
-                        if item.get('type') == 'text'
-                        and (
-                            _match := re.search(
-                                TOOL_RESULT_REGEX_PATTERN, item['text'], re.DOTALL
-                            )
-                        )
-                    ),
-                    None,
-                )
-            else:
-                raise FunctionCallConversionError(
-                    f'Unexpected content type {type(content)}. Expected str or list. Content: {content}'
-                )
-
-            if tool_result_match:
-                if not (
-                    isinstance(content, str)
-                    or (
-                        isinstance(content, list)
-                        and len(content) == 1
-                        and content[0].get('type') == 'text'
-                    )
-                ):
-                    raise FunctionCallConversionError(
-                        f'Expected str or list with one text item when tool result is present in the message. Content: {content}'
-                    )
-                tool_name = tool_result_match.group(1)
-                tool_result = tool_result_match.group(2).strip()
-
-                # Convert to tool message format
-                converted_messages.append(
-                    {
-                        'role': 'tool',
-                        'name': tool_name,
-                        'content': [{'type': 'text', 'text': tool_result}]
-                        if isinstance(content, list)
-                        else tool_result,
-                        'tool_call_id': f'toolu_{tool_call_counter-1:02d}',  # Use last generated ID
-                    }
-                )
-            else:
-                converted_messages.append({'role': 'user', 'content': content})
-
-        # Handle assistant messages
-        elif role == 'assistant':
-            if isinstance(content, str):
-                content = _fix_stopword(content)
-                fn_match = re.search(FN_REGEX_PATTERN, content, re.DOTALL)
-            elif isinstance(content, list):
-                if content and content[-1]['type'] == 'text':
-                    content[-1]['text'] = _fix_stopword(content[-1]['text'])
-                    fn_match = re.search(
-                        FN_REGEX_PATTERN, content[-1]['text'], re.DOTALL
-                    )
-                else:
-                    fn_match = None
-                fn_match_exists = any(
-                    item.get('type') == 'text'
-                    and re.search(FN_REGEX_PATTERN, item['text'], re.DOTALL)
-                    for item in content
-                )
-                if fn_match_exists and not fn_match:
-                    raise FunctionCallConversionError(
-                        f'Expecting function call in the LAST index of content list. But got content={content}'
-                    )
-            else:
-                raise FunctionCallConversionError(
-                    f'Unexpected content type {type(content)}. Expected str or list. Content: {content}'
-                )
-
-            if fn_match:
-                fn_name = fn_match.group(1)
-                fn_body = fn_match.group(2)
-                matching_tool = next(
-                    (
-                        tool['function']
-                        for tool in tools
-                        if tool['type'] == 'function'
-                        and tool['function']['name'] == fn_name
-                    ),
-                    None,
-                )
-                # Validate function exists in tools
-                if not matching_tool:
-                    raise FunctionCallValidationError(
-                        f"Function '{fn_name}' not found in available tools: {[tool['function']['name'] for tool in tools if tool['type'] == 'function']}"
-                    )
-
-                # Parse parameters
-                param_matches = re.finditer(FN_PARAM_REGEX_PATTERN, fn_body, re.DOTALL)
-                params = _extract_and_validate_params(
-                    matching_tool, param_matches, fn_name
-                )
-
-                # Create tool call with unique ID
-                tool_call_id = f'toolu_{tool_call_counter:02d}'
-                tool_call = {
-                    'index': 1,  # always 1 because we only support **one tool call per message**
-                    'id': tool_call_id,
-                    'type': 'function',
-                    'function': {'name': fn_name, 'arguments': json.dumps(params)},
-                }
-                tool_call_counter += 1  # Increment counter
-
-                # Remove the function call part from content
-                if isinstance(content, list):
-                    assert content and content[-1]['type'] == 'text'
-                    content[-1]['text'] = (
-                        content[-1]['text'].split('<function=')[0].strip()
-                    )
-                elif isinstance(content, str):
-                    content = content.split('<function=')[0].strip()
-                else:
-                    raise FunctionCallConversionError(
-                        f'Unexpected content type {type(content)}. Expected str or list. Content: {content}'
-                    )
-
-                converted_messages.append(
-                    {'role': 'assistant', 'content': content, 'tool_calls': [tool_call]}
-                )
-            else:
-                # No function call, keep message as is
-                converted_messages.append(message)
-
-        else:
-            raise FunctionCallConversionError(
-                f'Unexpected role {role}. Expected system, user, or assistant in non-function calling messages.'
-            )
-    return converted_messages
-
-class FunctionCallConversionError(Exception):
-    """Exception raised when FunctionCallingConverter failed to convert a non-function call message to a function call message.
-
-    This typically happens when there's a malformed message (e.g., missing <function=...> tags). But not due to LLM output.
-    """
-
-    def __init__(self, message):
-        super().__init__(message)
-
-
 system_prompt = SYSTEM_PROMPT_SUFFIX_TEMPLATE.format(description=convert_tools_to_description([StrReplaceEditorTool]))
 
 file_tree = os.popen("cd django && git ls-tree -r --name-only HEAD").read()
@@ -381,10 +145,24 @@ for i in range(ITERATIONS):
     message = response["choices"][0]["message"]
 
     messages.append(message)
-    messages = convert_non_fncall_messages_to_fncall_messages(messages, [StrReplaceEditorTool])
+    try:
+        messages = convert_non_fncall_messages_to_fncall_messages(messages, [StrReplaceEditorTool])
+    except Exception as e:
+        messages.append({
+            "role": "tool_call",
+            "content": str(e),
+        })
 
-    print(message)
+    print("\033[94m" + message["content"] + "\033[0m")
+
+
+res = []
+for message in messages:
+    if hasattr(message, "model_dump"):
+        res.append(message.model_dump())
+    else:
+        res.append(message)
 
 
 with open(f"messages.json", "w") as f:
-    json.dump([message.model_dump() for message in messages], f)
+    json.dump(res, f, indent=2)
