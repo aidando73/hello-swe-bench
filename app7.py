@@ -116,6 +116,7 @@ if message.get('tool_calls') != None:
     try:
         arguments = json.loads(function['arguments'])
         print('\033[94m' + function['name'], json.dumps(arguments, indent=2) + '\033[0m')
+        history_item = f"{function['name']}: {json.dumps(arguments, indent=2)}"
         if arguments['command'] == 'str_replace':
             try:
                 with open(f"django/{arguments['path']}", 'w') as f:
@@ -124,6 +125,7 @@ if message.get('tool_calls') != None:
                     f.write(f.read().replace(old_str, new_str))
             except FileNotFoundError:
                 print(f"File {arguments['path']} not found. Skipping...")
+                history_item += f"Result: Error - File {arguments['path']} not found."
         elif arguments['command'] == 'insert':
             try:
                 with open(f"django/{arguments['path']}", 'w') as f:
@@ -133,24 +135,29 @@ if message.get('tool_calls') != None:
                     f.writelines(lines)
             except FileNotFoundError:
                 print(f"File {arguments['path']} not found. Skipping...")
+                history_item += f"Result: Error - File {arguments['path']} not found."
         elif arguments['command'] == 'view':
             try:
                 with open(f"django/{arguments['path']}", 'r') as f:
                     file_content = f.read()
-
-                history.append(f"File {arguments['path']}:\n{file_content}\n")
+                    history_item += f"Result: {file_content}"
             except FileNotFoundError:
                 print(f"File {arguments['path']} not found. Skipping...")
+                history_item += f"Result: Error - File {arguments['path']} not found."
         elif arguments["command"] == "create":
             try:
                 with open(f"django/{arguments['path']}", 'w') as f:
                     f.write(arguments['file_text'])
             except FileNotFoundError:
                 print(f"File {arguments['path']} not found. Skipping...")
+                history_item += f"Result: Error - File {arguments['path']} not found."
+        history.append(history_item)
     except json.JSONDecodeError:
         print('\033[91mInvalid JSON in tool call arguments.\033[0m')
+        history_item += f"Result: Error - Invalid JSON in tool call arguments: {function['arguments']}"
     except Exception as e:
         print(f"Error - skipping: {e}")
+        history_item += f"Result: Error - {e}"
 
 else:
     print('\033[93mNo tool calls found in the response.\033[0m')
