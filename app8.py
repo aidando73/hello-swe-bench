@@ -7,9 +7,9 @@ from litellm import (
 import json
 import os
 
-# model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
+model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
 # model = "fireworks_ai/accounts/fireworks/models/llama-v3p1-405b-instruct"
-model = "anthropic/claude-3-5-sonnet-20240620"
+# model = "anthropic/claude-3-5-sonnet-20240620"
 
 # git ls-tree -r --name-only HEAD
 
@@ -160,16 +160,19 @@ for i in range(ITERATIONS):
             )
             if arguments["command"] == "str_replace":
                 try:
+                    with open(f"django/{arguments['path']}", "r") as f:
+                        file_content = f.read()
                     with open(f"django/{arguments['path']}", "w") as f:
                         old_str = arguments["old_str"]
                         new_str = arguments["new_str"]
-                        f.write(f.read().replace(old_str, new_str))
+                        new_content = file_content.replace(old_str, new_str)
+                        f.write(new_content)
                         messages.append(
                             {
                                 "role": "tool",
                                 "name": function["name"],
                                 "tool_call_id": id,
-                                "content": f"Result: {f.read()}",
+                                "content": f"Result: {new_content}",
                             }
                         )
                 except FileNotFoundError:
