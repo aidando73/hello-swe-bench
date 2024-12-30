@@ -2,12 +2,8 @@ import json
 import os
 from llama_stack_client import LlamaStackClient
 
-# model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
-# MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
-MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
-# model = "fireworks_ai/accounts/fireworks/models/llama-v3p1-405b-instruct"
-# model = "openai/accounts/fireworks/models/llama-v3p1-405b-instruct"
-# model = "anthropic/claude-3-5-sonnet-20240620"
+MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
+# MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
 
 # git ls-tree -r --name-only HEAD
 
@@ -109,12 +105,19 @@ messages = [
 client = LlamaStackClient(base_url=f"http://localhost:{os.environ['LLAMA_STACK_PORT']}")
 
 for i in range(ITERATIONS):
+    print(f"\033[95mIteration {i+1}\033[0m")
     response = client.inference.chat_completion(
         model_id=MODEL_ID,
         messages=messages,
         tools=[StrReplaceEditorTool],
+        tool_prompt_format=tool_prompt_format,
     )
-    print(response)
+    message = response.completion_message
+    messages.append(message)
+    if message.content is not None:
+        print(message.content)
+    else:
+        print(message)
 
 #     message = response["choices"][0]["message"]
 #     # print(message)
