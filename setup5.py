@@ -32,7 +32,6 @@ import json
 with open('sample_row.json', 'w') as f:
     json.dump(sample_row.to_dict(), f)
 
-
 commit = sample_row['base_commit']
 
 print(f"Checking out commit {commit}")
