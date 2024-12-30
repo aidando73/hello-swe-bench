@@ -8,11 +8,9 @@ df = swebench.to_pandas()
 
 # Filter out only django instances
 df_django = df[df['repo'] == 'django/django']
-# display(f"Django: {len(df_django)}/{len(df)}")
 
 # Only version 5.x instances
 df_django_5 = df_django[df_django['version'].str.contains('5.')].reset_index(drop=True)
-# display(f"Django 5.x: {len(df_django_5)}/{len(df_django)}")
 
 # Read current instance index
 with open('current_instance.txt', 'r') as f:
