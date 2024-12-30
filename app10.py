@@ -49,6 +49,7 @@ ViewFileTool = {
     "tool_name": "view_file",
     "description": "View a file",
     "parameters": {
+        # TOOD - try absolute paths here
         "path": {"description": "The path to the file to view.", "param_type": "string", "required": True},
     },
 }
@@ -67,8 +68,9 @@ messages = [
             + "\n</problem_statement>\n"
             + "You are an expert software engineer.\n"
             + "You are given a file tree and a problem statement. Please fix the problem.\n"
-            + "You have the str_replace_editor tool to view, create, edit and undo files in the repository.\n"
-            + "Make sure you explain your reasoning before you use the tool.\n"
+            + "You have the following tools to use:\n"
+            + json.dumps(ReplaceInFileTool, indent=2) + "\n"
+            + json.dumps(ViewFileTool, indent=2) + "\n"
             # "Please include the <done> tag in your response when you are finished.\n"
             # "You will be given a tool to run commands in the repository.\n" +
             # "You will be given a tool to view the repository.\n" +
