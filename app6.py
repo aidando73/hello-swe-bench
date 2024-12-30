@@ -7,8 +7,8 @@ from litellm import (
 import json
 import os
 
-model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
-# model = "anthropic/claude-3-5-sonnet-20240620"
+# model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
+model = "anthropic/claude-3-5-sonnet-20240620"
 
 # git ls-tree -r --name-only HEAD
 
@@ -105,9 +105,9 @@ response = completion(
 message = response['choices'][0]['message']
 if message.get('tool_calls') != None:
     function = message['tool_calls'][0]['function']
-    print('\033[94m' + function['name'], json.dumps(function['arguments'], indent=2) + '\033[0m')
     try:
         arguments = json.loads(function['arguments'])
+        print('\033[94m' + function['name'], json.dumps(arguments, indent=2) + '\033[0m')
         if arguments['command'] == 'str_replace':
             try:
                 with open(f"django/{arguments['path']}", 'w') as f:
