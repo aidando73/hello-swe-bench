@@ -1,2 +1,6 @@
 datasets
 litellm
+swekit
+composio-core
+crewai
+composio-crewai

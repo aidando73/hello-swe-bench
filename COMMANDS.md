@@ -24,4 +24,10 @@ stdbuf -o0 tee -a logs/$log_file
 (cd django && git --no-pager diff)
 
 brew install coreutils
+
+
+# Composio SWE kit
+swekit scaffold swe -f crewai -o swe
+cd swe/agent
+python agent.py
 ```
