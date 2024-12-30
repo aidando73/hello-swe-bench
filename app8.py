@@ -153,18 +153,20 @@ for i in range(ITERATIONS):
                 "\033[94m" + function["name"],
                 json.dumps(arguments, indent=2) + "\033[0m",
             )
-            history_item = f"{function['name']}: {json.dumps(arguments, indent=2)}"
             if arguments["command"] == "str_replace":
                 try:
                     with open(f"django/{arguments['path']}", "w") as f:
                         old_str = arguments["old_str"]
                         new_str = arguments["new_str"]
                         f.write(f.read().replace(old_str, new_str))
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "content": f"Result: {f.read()}",
+                            }
+                        )
                 except FileNotFoundError:
                     print(f"File {arguments['path']} not found. Skipping...")
-                    history_item += (
-                        f"Result: Error - File {arguments['path']} not found."
-                    )
             elif arguments["command"] == "insert":
                 try:
                     with open(f"django/{arguments['path']}", "w") as f:
@@ -172,37 +174,42 @@ for i in range(ITERATIONS):
                         lines = f.readlines()
                         lines.insert(line_number, arguments["new_str"])
                         f.writelines(lines)
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "content": f"Result: {f.read()}",
+                            }
+                        )
                 except FileNotFoundError:
                     print(f"File {arguments['path']} not found. Skipping...")
-                    history_item += (
-                        f"Result: Error - File {arguments['path']} not found."
-                    )
             elif arguments["command"] == "view":
                 try:
                     with open(f"django/{arguments['path']}", "r") as f:
                         file_content = f.read()
-                        history_item += f"Result: {file_content}"
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "content": f"Result: {file_content}",
+                            }
+                        )
                 except FileNotFoundError:
                     print(f"File {arguments['path']} not found. Skipping...")
-                    history_item += (
-                        f"Result: Error - File {arguments['path']} not found."
-                    )
             elif arguments["command"] == "create":
                 try:
                     with open(f"django/{arguments['path']}", "w") as f:
                         f.write(arguments["file_text"])
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "content": f"Result: {f.read()}",
+                            }
+                        )
                 except FileNotFoundError:
                     print(f"File {arguments['path']} not found. Skipping...")
-                    history_item += (
-                        f"Result: Error - File {arguments['path']} not found."
-                    )
-            history.append(history_item)
         except json.JSONDecodeError:
             print("\033[91mInvalid JSON in tool call arguments.\033[0m")
-            history_item += f"Result: Error - Invalid JSON in tool call arguments: {function['arguments']}"
         except Exception as e:
             print(f"Error - skipping: {e}")
-            history_item += f"Result: Error - {e}"
 
     else:
         print(message["content"])
