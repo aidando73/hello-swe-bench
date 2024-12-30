@@ -2,8 +2,8 @@ import json
 import os
 from llama_stack_client import LlamaStackClient
 
-MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
-# MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
+# MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
+MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
 # model = "anthropic/claude-3-5-sonnet-20240620"
 
 # git ls-tree -r --name-only HEAD
