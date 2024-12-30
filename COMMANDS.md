@@ -37,4 +37,5 @@ ID: #77
 
 # Repo tree
 git ls-tree -r --name-only HEAD
+# ^ This works well because it doesn't include .gitignore files
 ```
