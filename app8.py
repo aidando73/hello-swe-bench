@@ -7,9 +7,9 @@ from litellm import (
 import json
 import os
 
-model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
+# model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
 # model = "fireworks_ai/accounts/fireworks/models/llama-v3p1-405b-instruct"
-# model = "anthropic/claude-3-5-sonnet-20240620"
+model = "anthropic/claude-3-5-sonnet-20240620"
 
 # git ls-tree -r --name-only HEAD
 
@@ -270,6 +270,9 @@ for i in range(ITERATIONS):
         f"Input tokens: {response['usage']['prompt_tokens']}",
         f"Output tokens: {response['usage']['completion_tokens']}",
     )
+    if "anthropic" in model:
+        import time
+        time.sleep(60)
 
 # print("Loop finished")
 with open("messages.json", "w") as f:
