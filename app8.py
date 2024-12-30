@@ -9,6 +9,7 @@ import os
 
 model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
 # model = "fireworks_ai/accounts/fireworks/models/llama-v3p1-405b-instruct"
+# model = "openai/accounts/fireworks/models/llama-v3p1-405b-instruct"
 # model = "anthropic/claude-3-5-sonnet-20240620"
 
 # git ls-tree -r --name-only HEAD
@@ -95,6 +96,7 @@ messages = [
             + "You are an expert software engineer.\n"
             + "You are given a file tree and a problem statement. Please fix the problem.\n"
             + "You have the str_replace_editor tool to view, create, edit and undo files in the repository.\n"
+            + "Make sure you explain your reasoning before you use the tool.\n"
             # "Please include the <done> tag in your response when you are finished.\n"
             # "You will be given a tool to run commands in the repository.\n" +
             # "You will be given a tool to view the repository.\n" +
