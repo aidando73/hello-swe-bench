@@ -7,9 +7,9 @@ from litellm import (
 import json
 import os
 
-# model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
+model = "fireworks_ai/accounts/fireworks/models/llama-v3p3-70b-instruct"
 # model = "fireworks_ai/accounts/fireworks/models/llama-v3p1-405b-instruct"
-model = "anthropic/claude-3-5-sonnet-20240620"
+# model = "anthropic/claude-3-5-sonnet-20240620"
 
 # git ls-tree -r --name-only HEAD
 
@@ -80,18 +80,13 @@ StrReplaceEditorTool = ChatCompletionToolParam(
     ),
 )
 
-history = []
-
 ITERATIONS = 10
 
 messages = [
     {
         "role": "user",
         "content": (
-            "<history>\n"
-            + "\n".join(history)
-            + "\n</history>\n"
-            + "<repository>\n"
+            "<repository>\n"
             + file_tree
             + "\n</repository>\n"
             + "<problem_statement>\n"
@@ -99,11 +94,7 @@ messages = [
             + "\n</problem_statement>\n"
             + "You are an expert software engineer.\n"
             + "You are given a file tree and a problem statement. Please fix the problem.\n"
-            + "The history of your previous actions is included in <history>.\n"
-            +
-            # "Please start by using the str_replace_editor `view` tool to view relevant files in the repository.\n" +
-            # "Then use the str_replace_editor `str_replace` tool to edit the files.\n"
-            "You have the str_replace_editor tool to view, create, edit and undo files in the repository.\n"
+            + "You have the str_replace_editor tool to view, create, edit and undo files in the repository.\n"
             "Please include the <done> tag in your response when you are finished.\n"
             # "You will be given a tool to run commands in the repository.\n" +
             # "You will be given a tool to view the repository.\n" +
@@ -124,6 +115,8 @@ for i in range(ITERATIONS):
     )
 
     message = response["choices"][0]["message"]
+    # print(message)
+    messages.append(message)
     if message.get("tool_calls") != None:
         function = message["tool_calls"][0]["function"]
     else:
@@ -220,4 +213,4 @@ for i in range(ITERATIONS):
         f"Output tokens: {response['usage']['completion_tokens']}",
     )
 
-print("Loop finished")
+# print("Loop finished")
