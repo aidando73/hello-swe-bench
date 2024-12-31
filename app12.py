@@ -79,6 +79,20 @@ Here is a list of functions in JSON format that you can invoke.
                 }
             }
         }
+    },
+    {
+        "name": "finish",
+        "description": "If you have solved the problem, you can call this function to finish the task.",
+        "parameters": {
+            "type": "dict",
+            "required": ["message"],
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "The message to finish the task with."
+                }
+            }
+        }
     }
 ]
 
@@ -138,7 +152,12 @@ ITERATIONS = 5
 
 client = LlamaStackClient(base_url=f"http://localhost:{os.environ['LLAMA_STACK_PORT']}")
 
+finished = False
+
 for i in range(ITERATIONS):
+    if finished:
+        print("\033[92mTask finished\033[0m")
+        break
     message += "<|start_header_id|>assistant<|end_header_id|>\n\n"
     response = client.inference.completion(
         model_id=MODEL_ID,
@@ -165,9 +184,9 @@ for i in range(ITERATIONS):
         print(f"\033[92mCalling tool: {original_tool_content}\033[0m")
         if tool_name == "replace_in_file":
             try:
-                with open(f"django/{tool_params['path']}", "r") as f:
+                with open(f"{tool_params['path']}", "r") as f:
                     file_content = f.read()
-                with open(f"django/{tool_params['path']}", "w") as f:
+                with open(f"{tool_params['path']}", "w") as f:
                     old_str = tool_params["old_str"]
                     new_str = tool_params["new_str"]
                     new_content = file_content.replace(old_str, new_str)
@@ -178,12 +197,15 @@ for i in range(ITERATIONS):
                 message += f"Result: Error - File {tool_params['path']} not found. Skipping...\n"
         elif tool_name == "view_file":
             try:
-                with open(f"django/{tool_params['path']}", "r") as f:
+                with open(f"{tool_params['path']}", "r") as f:
                     file_content = f.read()
                 message += f"Result: {file_content}\n"
             except FileNotFoundError:
                 print(f"File {tool_params['path']} not found. Skipping...")
                 message += f"Result: Error - File {tool_params['path']} not found. Skipping...\n"
+        elif tool_name == "finish":
+            finished = True
+            message += f"Result: Task marked as finished\n"
         else:
             print(f"\033[91mUnknown tool: {tool_name}\033[0m")
             # TODO - does this ever fire? If so we should add into message
@@ -192,7 +214,6 @@ for i in range(ITERATIONS):
 
     if not tool_calls and not thinking_match:
         print(f"\033[94mThinking: {response.content}\033[0m")
-    
 
 
 with open("message.txt", "w") as f:
