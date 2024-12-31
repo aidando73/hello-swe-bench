@@ -179,8 +179,7 @@ for i in range(ITERATIONS):
     tool_calls = parse_tool_calls(response.content)
     for tool_name, tool_params, original_tool_content in tool_calls:
         message += f"<|start_header_id|>tool<|end_header_id|>\n\n"
-        message += f"{original_tool_content}\n"
-        message += "Result: \n"
+        message += f"Executed tool call: {original_tool_content}\n"
         print(f"\033[92mCalling tool: {original_tool_content}\033[0m")
         if tool_name == "replace_in_file":
             try:
