@@ -4,6 +4,8 @@ from llama_stack_client import LlamaStackClient
 from llama_models.llama3.api.chat_format import ChatFormat
 from llama_models.llama3.api.tokenizer import Tokenizer
 from llama_models.llama3.api.datatypes import StopReason
+from llama_models.llama3.api.tool_utils import is_valid_python_list, parse_python_list_for_function_calls
+import re
 
 # MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
 MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
@@ -114,4 +116,19 @@ response = client.inference.completion(
     content=message,
 )
 message = response
-print(formatter.decode_assistant_message_from_content(message.content, StopReason.end_of_turn))
+print(message.content)
+# Parse tool tags from response
+tool_match = re.search(r'<tool>(.*?)</tool>', message.content, re.DOTALL)
+if tool_match:
+    tool_content = tool_match.group(1)
+    if not is_valid_python_list(tool_content):
+        # Sometimes Llama returns a tool call without the list
+        tool_content = f"[{tool_content}]"
+    if is_valid_python_list(tool_content):
+        result = parse_python_list_for_function_calls(tool_content)
+        print(result)
+    else:
+        print("Not valid tool call: ", tool_content)
+else:
+    print("No tool call found")
+# print(formatter.decode_assistant_message_from_content(message.content, StopReason.end_of_turn))
