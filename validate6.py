@@ -43,17 +43,17 @@ directives = directives_transformed
 print('\033[94m' + f"Running command: ./tests/runtests.py --settings=test_sqlite --parallel 1 {' '.join(directives)}" + '\033[0m')
 
 os.system(
-    f"cd {SCRIPT_DIR}/django && "
+    f"bash -c 'cd {SCRIPT_DIR}/django && "
     f"source ~/miniconda3/bin/activate && "
     f"conda activate ./{environment} && "
-    f"python -m pip install -e ."
+    f"python -m pip install -e .'"
 )
 
 test_result =os.system(
-    f"cd {SCRIPT_DIR}/django && "
+    f"bash -c 'cd {SCRIPT_DIR}/django && "
     f"source ~/miniconda3/bin/activate && "
     f"conda activate ./{environment} && "
-    f"./tests/runtests.py --settings=test_sqlite --parallel 1 {' '.join(directives)}"
+    f"./tests/runtests.py --settings=test_sqlite --parallel 1 {' '.join(directives)}'"
 )
 
 # Get latest eval log file

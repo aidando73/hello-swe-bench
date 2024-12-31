@@ -19,9 +19,6 @@ else:
 
 file_tree = os.popen("cd django && git ls-tree -r --name-only HEAD").read()
 
-with open("problem_statement.txt", "r") as f:
-    problem_statement = f.read()
-
 with open("sample_row.json", "r") as f:
     sample_row = json.load(f)
 
