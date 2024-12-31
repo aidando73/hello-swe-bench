@@ -121,16 +121,18 @@ message = response
 print(message.content)
 # Parse tool tags from response
 tool_match = re.search(r'<tool>(.*?)</tool>', message.content, re.DOTALL)
-if tool_match:
-    tool_content = tool_match.group(1)
+
+tool_calls = []
+for match in re.finditer(r'<tool>(.*?)</tool>', message.content, re.DOTALL):
+    tool_content = match.group(1)
     if not is_valid_python_list(tool_content):
         # Sometimes Llama returns a tool call without the list
         tool_content = f"[{tool_content}]"
     if is_valid_python_list(tool_content):
         result = parse_python_list_for_function_calls(tool_content)
-        print(result)
+        tool_calls.append(result)
     else:
         print("Not valid tool call: ", tool_content)
-else:
-    print("No tool call found")
+
+print("tool_calls: ", tool_calls)
 # print(formatter.decode_assistant_message_from_content(message.content, StopReason.end_of_turn))
