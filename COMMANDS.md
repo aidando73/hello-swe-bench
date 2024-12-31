@@ -89,9 +89,10 @@ log_file=$(cat current_instance.txt)_$(date +%Y-%m-%d_%H-%M).log && \
 bash -c "python setup7.py && python app14.py && python validate7.py"  2>&1 | \
 stdbuf -o0 tee -a logs/$log_file
 
+sudo apt install screen
 screen -S agent-eval
 
-eval_dir=$(realpath evals/v15) && \
+eval_dir=$(realpath evals/v15.1) && \
 python eval7.py $eval_dir  2>&1 | \
 stdbuf -o0 tee -a $eval_dir/harness.log
 ```
