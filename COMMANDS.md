@@ -79,6 +79,12 @@ log_file=full_eval_$(date +%Y-%m-%d_%H-%M).log && \
 touch logs/evals/$(date "+%Y-%m-%d_%H:%M").log && \
 python eval6.py  2>&1 | \
 stdbuf -o0 tee -a logs/$log_file
+
+
+log_file=full_eval_$(date +%Y-%m-%d_%H-%M).log && \
+touch logs/evals/$(date "+%Y-%m-%d_%H:%M").log && \
+python eval6.py  2>&1 | \
+stdbuf -o0 tee -a logs/$log_file
 ```
 
 Dependencies:
