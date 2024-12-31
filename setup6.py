@@ -25,7 +25,7 @@ sample_row = df_django.iloc[instance_idx]
 with open('current_instance.txt', 'w') as f:
     f.write(str(instance_idx))
 
-print(f"Setting up instance: {sample_row['instance_id']}, instance_idx: {instance_idx}")
+print(f"Setting up instance: {sample_row['instance_id']}, instance_idx: {instance_idx}, version: {sample_row['version']}")
 
 import json
 
@@ -36,4 +36,3 @@ commit = sample_row['base_commit']
 
 print(f"Checking out commit {commit}")
 os.system(f"cd {SCRIPT_DIR}/django && git checkout -f {commit}")
-
