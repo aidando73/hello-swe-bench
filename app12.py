@@ -139,7 +139,8 @@ for i in range(ITERATIONS):
 
     # Parse tool tags from response
     tool_calls = parse_tool_calls(response.content)
-    print("\033[92mtool_calls: ", tool_calls, "\033[0m")
+    for tool_name, tool_params in tool_calls:
+        print(f"\033[92mCalling tool: {tool_name}({tool_params})\033[0m")
 
     if not tool_calls and not thinking_match:
         print(f"\033[94mThinking: {response.content}\033[0m")
