@@ -170,6 +170,14 @@ for i in range(ITERATIONS):
         message += f"Executed tool call: {original_tool_content}\n"
         print(f"\033[92mCalling tool: {original_tool_content}\033[0m")
         if tool_name == "replace_in_file":
+            if "old_str" not in tool_params:
+                print(f"\033[91mOld string not found in tool params: {tool_params}\033[0m")
+                message += f"Result: Error - old_str not found in tool params. Please ensure the tool params are correct.\n"
+                continue
+            if "new_str" not in tool_params:
+                print(f"\033[91mNew string not found in tool params: {tool_params}\033[0m")
+                message += f"Result: Error - new_str not found in tool params. Please ensure the tool params are correct.\n"
+                continue
             try:
                 with open(f"{tool_params['path']}", "r") as f:
                     file_content = f.read()

@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import datetime
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 with open(os.path.join(SCRIPT_DIR, 'sample_row.json'), 'r') as f:
@@ -73,7 +74,8 @@ else:
     result = "fail"
 
 with open(os.path.join(eval_logs_dir, latest_eval), 'a') as f:
-    f.write(f"{instance_idx},{instance_id},{result}\n")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    f.write(f"{instance_idx},{instance_id},{result},{timestamp}\n")
 
 print("Reverting patch...")
 os.system(f"cd {SCRIPT_DIR}/django && git apply -R test.patch")

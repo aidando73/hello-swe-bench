@@ -24,6 +24,9 @@ else:
 
 sample_row = df_django.iloc[instance_idx]
 
+sample_row = df_django.iloc[instance_idx]
+
+
 # Increment instance index
 instance_idx = (instance_idx + 1) % len(df_django)
 
