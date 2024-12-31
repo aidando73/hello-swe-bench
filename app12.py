@@ -191,7 +191,7 @@ for i in range(ITERATIONS):
                     new_str = tool_params["new_str"]
                     new_content = file_content.replace(old_str, new_str)
                     f.write(new_content)
-                message += f"Result: {new_content}\n"
+                message += f"Result: File successfully updated\n"
             except FileNotFoundError:
                 print(f"File {tool_params['path']} not found. Skipping...")
                 message += f"Result: Error - File {tool_params['path']} not found. Skipping...\n"
