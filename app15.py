@@ -145,7 +145,7 @@ def parse_tool_calls(content):
     return tool_calls
 
 
-ITERATIONS = 5
+ITERATIONS = 15
 
 client = LlamaStackClient(base_url=f"http://localhost:{os.environ['LLAMA_STACK_PORT']}")
 
