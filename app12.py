@@ -193,7 +193,7 @@ for i in range(ITERATIONS):
                 message += f"Result: File successfully updated\n"
             except FileNotFoundError:
                 print(f"File {tool_params['path']} not found. Skipping...")
-                message += f"Result: Error - File {tool_params['path']} not found. Skipping...\n"
+                message += f"Result: Error - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
         elif tool_name == "view_file":
             try:
                 with open(f"{tool_params['path']}", "r") as f:
@@ -201,7 +201,7 @@ for i in range(ITERATIONS):
                 message += f"Result: {file_content}\n"
             except FileNotFoundError:
                 print(f"File {tool_params['path']} not found. Skipping...")
-                message += f"Result: Error - File {tool_params['path']} not found. Skipping...\n"
+                message += f"Result: Error - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
         elif tool_name == "finish":
             finished = True
             message += f"Result: Task marked as finished\n"
