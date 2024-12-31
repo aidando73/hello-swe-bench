@@ -81,10 +81,11 @@ python eval6.py  2>&1 | \
 stdbuf -o0 tee -a logs/$log_file
 
 
-log_file=full_eval_$(date +%Y-%m-%d_%H-%M).log && \
-touch logs/evals/$(date "+%Y-%m-%d_%H:%M").log && \
-python eval6.py  2>&1 | \
-stdbuf -o0 tee -a logs/$log_file
+eval_dir=$(realpath evals/v12.1-5iterations-3.3-70B) && \
+log_file=$eval_dir/harness.log && \
+touch $eval_dir/eval.log && \
+python eval7.py $eval_dir  2>&1 | \
+stdbuf -o0 tee -a $log_file
 ```
 
 Dependencies:
