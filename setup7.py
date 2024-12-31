@@ -20,6 +20,14 @@ if not instance_id:
     if os.path.exists('current_instance.txt'):
         with open('current_instance.txt', 'r') as f:
             instance_id = f.read().strip()
+    
+    # Move to the next instance
+    current_idx = df_django[df_django['instance_id'] == instance_id].index[0]
+    next_idx = (current_idx + 1) % len(df_django)
+    next_instance_id = df_django.iloc[next_idx]['instance_id']
+
+    with open('current_instance.txt', 'w') as f:
+        f.write(next_instance_id)
 
 sample_row = df_django[df_django['instance_id'] == instance_id].iloc[0]
 

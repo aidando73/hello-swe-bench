@@ -175,10 +175,11 @@ for i in range(ITERATIONS):
 
     # Parse tool tags from response
     tool_calls = parse_tool_calls(response.content)
-    for tool_name, tool_params, original_tool_content in tool_calls:
+    for tool_name, tool_params in tool_calls:
         message += f"<|start_header_id|>tool<|end_header_id|>\n\n"
-        message += f"Executed tool call: {original_tool_content}\n"
-        print(f"\033[92mCalling tool: {original_tool_content}\033[0m")
+        tool_call_str = f"[{tool_name}({', '.join([f'{param_name}={param_value}' for param_name, param_value in tool_params.items()])})]"
+        message += f"Executed tool call: {tool_call_str}\n"
+        print(f"\033[92mCalling tool: {tool_call_str}\033[0m")
         if tool_name == "replace_in_file":
             if "old_str" not in tool_params:
                 print(f"\033[91mOld string not found in tool params: {tool_params}\033[0m")
@@ -205,10 +206,10 @@ for i in range(ITERATIONS):
                     f.write(new_content)
                 message += f"Result: File successfully updated\n"
             except FileNotFoundError:
-                print(f"File {tool_params['path']} not found. Skipping...")
+                print(f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists.")
                 message += f"Result: Error - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
             except IsADirectoryError:
-                print(f"Path {tool_params['path']} is a directory. Skipping...")
+                print(f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory.")
                 message += f"Result: Error - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
         elif tool_name == "view_file":
             try:
@@ -222,10 +223,10 @@ for i in range(ITERATIONS):
                     file_content = f.read()
                 message += f"Result: {file_content}\n"
             except FileNotFoundError:
-                print(f"File {tool_params['path']} not found. Skipping...")
+                print(f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists.")
                 message += f"Result: Error - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
             except IsADirectoryError:
-                print(f"Path {tool_params['path']} is a directory. Skipping...")
+                print(f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory.")
                 message += f"Result: Error - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
         elif tool_name == "finish":
             finished = True
