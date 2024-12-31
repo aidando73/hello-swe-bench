@@ -41,7 +41,6 @@ also point it out. You should only return the function call in tools call sectio
 If you decide to invoke any of the function(s), you MUST put it in the format of <tool>[func_name1(params_name1=params_value1, params_name2=params_value2...), func_name2(params)]</tool>
 If you decide to invoke multiple functions, you MUST put commas between the function calls. E.g., <tool>[func_name1(params), func_name2(params), func_name3(params)]</tool>
 
-
 Here is a list of functions in JSON format that you can invoke.
 
 [
