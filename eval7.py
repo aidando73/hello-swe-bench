@@ -18,6 +18,6 @@ with open('current_instance.txt', 'w') as f:
 
 for index, row in df_django.iterrows():
     instance_id = row['instance_id']
-    os.system(f"python setup6.py {instance_id}")
-    os.system(f"python app12.py")
+    os.system(f"python setup7.py {instance_id}")
+    os.system(f"python app14.py {eval_dir}")
     os.system(f"python validate7.py {eval_dir}")
