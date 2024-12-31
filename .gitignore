@@ -26,3 +26,4 @@ logs/
 swe/agent/__pycache__/
 messages.json
 __pycache__/
+message.txt
