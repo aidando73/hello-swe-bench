@@ -16,3 +16,8 @@ touch logs/evals/$(date "+%Y-%m-%d_%H:%M").log && \
 python eval6.py  2>&1 | \
 stdbuf -o0 tee -a logs/$log_file
 ```
+
+### Run v12
+
+- 58 instances
+- Llama 3.3 70B
