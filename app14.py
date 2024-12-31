@@ -34,12 +34,14 @@ message = """
 You are an expert software engineer.
 You will be given a file tree in <file_tree> and a problem statement in <problem_statement>.
 
-Based on the <problem_statement>, you will need to make one or more function/tool calls to achieve the purpose.
+Based on the <problem_statement>, you will need to make one or more function/tool calls to solve the problem.
 If none of the function can be used, point it out. If the given question lacks the parameters required by the function,
 also point it out. You should only return the function call in tools call sections.
 
 If you decide to invoke any of the function(s), you MUST put it in the format of <tool>[func_name1(params_name1=params_value1, params_name2=params_value2...), func_name2(params)]</tool>
 If you decide to invoke multiple functions, you MUST put commas between the function calls. E.g., <tool>[func_name1(params), func_name2(params), func_name3(params)]</tool>
+
+You are in the working directory as specified in <working_directory>. Please specify paths in absolute paths only. Relative paths will not work.
 
 Here is a list of functions in JSON format that you can invoke.
 
@@ -53,7 +55,7 @@ Here is a list of functions in JSON format that you can invoke.
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Absolute path to file or directory, e.g. `/Users/aidand/dev/django/file.py` or `/Users/aidand/dev/django`."
+                    "description": "Absolute path to file or directory, e.g. `/workspace/django/file.py` or `/workspace/django`."
                 },
                 "old_str": {
                     "type": "string",
@@ -75,7 +77,7 @@ Here is a list of functions in JSON format that you can invoke.
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "The absolute path to the file to view, e.g. `/Users/aidand/dev/django/file.py` or `/Users/aidand/dev/django`."
+                    "description": "The absolute path to the file to view, e.g. `/workspace/django/file.py` or `/workspace/django`."
                 }
             }
         }
@@ -101,13 +103,18 @@ Please explain your reasoning before you make any edits in a <thinking> tag.<|eo
 %problem_statement%
 </problem_statement>
 
-Please start by viewing files in the repository to understand the problem.<|eot_id|>
+Please start by viewing files in the repository to understand the problem.
+You are in the working directory as specified in <working_directory><|eot_id|>
 """.lstrip()
 
 
-message = message.replace("%working_directory%", os.getcwd() + "/django")
+message = message.replace("%working_directory%", "/workspace/django")
 message = message.replace("%file_tree%", file_tree)
 message = message.replace("%problem_statement%", problem_statement)
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+print(f"Script dir: {script_dir}")
 
 def parse_tool_calls(content):
     """
@@ -182,9 +189,16 @@ for i in range(ITERATIONS):
                 message += f"Result: Error - new_str not found in tool params. Please ensure the tool params are correct.\n"
                 continue
             try:
-                with open(f"{tool_params['path']}", "r") as f:
+                path = tool_params['path']
+                if path.startswith('/workspace/'):
+                    path = os.path.join(script_dir, path[len('/workspace/'):])
+                else:
+                    # If it doesn't start with /workspace, we'll assume it's a relative path
+                    path = os.path.join(script_dir, path)
+                
+                with open(f"{path}", "r") as f:
                     file_content = f.read()
-                with open(f"{tool_params['path']}", "w") as f:
+                with open(f"{path}", "w") as f:
                     old_str = tool_params["old_str"]
                     new_str = tool_params["new_str"]
                     new_content = file_content.replace(old_str, new_str)
@@ -198,7 +212,13 @@ for i in range(ITERATIONS):
                 message += f"Result: Error - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
         elif tool_name == "view_file":
             try:
-                with open(f"{tool_params['path']}", "r") as f:
+                path = tool_params['path']
+                if path.startswith('/workspace/'):
+                    path = os.path.join(script_dir, path[len('/workspace/'):])
+                else:
+                    # If it doesn't start with /workspace, we'll assume it's a relative path
+                    path = os.path.join(script_dir, path)
+                with open(f"{path}", "r") as f:
                     file_content = f.read()
                 message += f"Result: {file_content}\n"
             except FileNotFoundError:
