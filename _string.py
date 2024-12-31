@@ -2,4 +2,5 @@ test ="""
 Hello
 """.lstrip()
 
-print(test, end="")
+import json
+print(json.dumps(test), end="")

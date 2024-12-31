@@ -134,7 +134,6 @@ def parse_tool_calls(content):
                 tool_content = f"[{tool_content}"
             if not tool_content.endswith(']'):
                 tool_content = f"{tool_content}]"
-            continue
 
         if is_valid_python_list(tool_content):
             result = parse_python_list_for_function_calls(tool_content)
@@ -168,7 +167,7 @@ for i in range(ITERATIONS):
         # Check for any text outside of tool tags
         non_tool_content = re.sub(r'<tool>.*?</tool>', '', response.content, flags=re.DOTALL).strip()
         if non_tool_content:
-            print(f"\033[94m{non_tool_content}\033[0m")
+            print(f"\033[94mThinking: {non_tool_content}\033[0m")
 
     message += response.content
     message += f"<|eot_id|>"
