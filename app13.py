@@ -7,8 +7,8 @@ from llama_models.llama3.api.datatypes import StopReason
 from llama_models.llama3.api.tool_utils import is_valid_python_list, parse_python_list_for_function_calls
 import re
 
-# MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
-MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
+MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
+# MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
 
 formatter = ChatFormat(Tokenizer.get_instance())
 
