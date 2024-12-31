@@ -24,15 +24,12 @@ else:
 
 sample_row = df_django.iloc[instance_idx]
 
-sample_row = df_django.iloc[instance_idx]
-
-
 # Increment instance index
 instance_idx = (instance_idx + 1) % len(df_django)
-
 # Write new instance
 with open('current_instance.txt', 'w') as f:
-    f.write(f"{instance_idx},{sample_row['instance_id']}")
+    next_instance_idx = (instance_idx + 1) % len(df_django)
+    f.write(f"{next_instance_idx},{df_django.iloc[next_instance_idx]['instance_id']}")
 
 print(f"Setting up instance: {sample_row['instance_id']}, instance_idx: {instance_idx}, version: {sample_row['version']}")
 
