@@ -134,8 +134,16 @@ def parse_tool_calls(content):
     for match in re.finditer(r'<tool>(.*?)</tool>', content, re.DOTALL):
         tool_content = match.group(1)
         if not is_valid_python_list(tool_content):
-            # Sometimes Llama returns a tool call without the list
-            tool_content = f"[{tool_content}]"
+            tool_content = tool_content.strip()
+
+            # Add square brackets if missing
+            if not tool_content.startswith('['):
+                tool_content = f"[{tool_content}"
+            if not tool_content.endswith(']'):
+                tool_content = f"{tool_content}]"
+
+            print("Not valid tool call: ", tool_content)
+            continue
 
         if is_valid_python_list(tool_content):
             result = parse_python_list_for_function_calls(tool_content)
@@ -143,7 +151,7 @@ def parse_tool_calls(content):
             result = [(name, params) for name, params in result]
             tool_calls.extend(result)
         else:
-            print("Not valid tool call: ", tool_content)
+            print("Not valid tool call: ", match.group(1))
     return tool_calls
 
 
