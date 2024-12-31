@@ -61,6 +61,10 @@ ITERATIONS = 5
 
 messages = [
     {
+        "role": "system",
+        "content": "You are an expert software engineer.",
+    },
+    {
         "role": "user",
         "content": (
             "<working_directory>\n"
