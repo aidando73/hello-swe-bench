@@ -139,7 +139,7 @@ def parse_tool_calls(content):
         if is_valid_python_list(tool_content):
             result = parse_python_list_for_function_calls(tool_content)
             # Add the original tool content to each result tuple
-            result = [(name, params, tool_content) for name, params in result]
+            result = [(name, params) for name, params in result]
             tool_calls.extend(result)
         else:
             print("Not valid tool call: ", tool_content)
