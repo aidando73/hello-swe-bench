@@ -55,7 +55,12 @@ test_result =os.system(
     f"./tests/runtests.py --settings=test_sqlite --parallel 1 {' '.join(directives)}"
 )
 
+# Get latest eval log file
+eval_logs_dir = os.path.join(SCRIPT_DIR, 'logs', 'evals')
+eval_files = sorted(os.listdir(eval_logs_dir))
+latest_eval = eval_files[-1] if eval_files else None
 
+print(f"Latest eval log file: {latest_eval}")
 
 if test_result == 0:
     print('\033[92mTest passed\033[0m')
