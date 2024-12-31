@@ -16,4 +16,5 @@ with open('current_instance.txt', 'w') as f:
 
 for index, row in df_django.iterrows():
     os.system(f"python setup6.py")
+    os.system(f"python app12.py")
     os.system(f"python validate6.py")

@@ -13,9 +13,13 @@ df_django = df[df['repo'] == 'django/django']
 df_django = df_django[df_django['version'].str.contains('5.') | df_django['version'].str.contains('4.')].reset_index(drop=True)
 
 # Read current instance index
-with open('current_instance.txt', 'r') as f:
-    instance_idx, instance_id = f.read().strip().split(',')
-    instance_idx = int(instance_idx)
+if os.path.exists('current_instance.txt'):
+    with open('current_instance.txt', 'r') as f:
+        instance_idx, instance_id = f.read().strip().split(',')
+        instance_idx = int(instance_idx)
+else:
+    instance_idx = 0
+    instance_id = df_django.iloc[0]['instance_id']
 
 # Increment instance index
 instance_idx = (instance_idx + 1) % len(df_django)
