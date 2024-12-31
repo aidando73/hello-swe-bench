@@ -83,16 +83,7 @@ Here is a list of functions in JSON format that you can invoke.
     {
         "name": "finish",
         "description": "If you have solved the problem, you can call this function to finish the task.",
-        "parameters": {
-            "type": "dict",
-            "required": ["message"],
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "description": "The message to finish the task with."
-                }
-            }
-        }
+        "parameters": {}
     }
 ]
 
