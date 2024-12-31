@@ -28,3 +28,4 @@ messages.json
 __pycache__/
 message.txt
 evals/
+current_instance.patch
