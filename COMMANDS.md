@@ -60,5 +60,11 @@ stdbuf -o0 tee -a logs/$log_file
 (cd django && source ~/miniconda3/bin/activate && conda create --prefix ./env_3_11 python=3.11)
 
 
-touch logs/evals/$(date "+%Y-%m-%d_%H:%M").log
+
+
+
+log_file=full_eval_$(date +%Y-%m-%d_%H-%M).log && \
+touch logs/evals/$(date "+%Y-%m-%d_%H:%M").log && \
+python eval6.py  2>&1 | \
+stdbuf -o0 tee -a logs/$log_file
 ```
