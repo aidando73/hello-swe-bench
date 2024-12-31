@@ -82,7 +82,9 @@ Here is a list of functions in JSON format that you can invoke.
             }
         }
     }
-]<|eot_id|><|start_header_id|>user<|end_header_id|>
+]
+
+Please explain your reasoning before you make any edits in a <thinking> tag.<|eot_id|><|start_header_id|>user<|end_header_id|>
 
 <working_directory>
 %working_directory%
@@ -97,7 +99,7 @@ Here is a list of functions in JSON format that you can invoke.
 </problem_statement>
 
 Please start by viewing files in the repository to understand the problem.
-Please explain your reasoning before you make any edits in a <thinking> tag.<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
 
 """.lstrip()
