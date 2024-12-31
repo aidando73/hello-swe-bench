@@ -99,7 +99,7 @@ Please explain your reasoning before you make any edits in a <thinking> tag.
 
 Please start by viewing files in the repository to understand the problem.
 You are in the working directory as specified in <working_directory>. Please specify paths in absolute paths only. Relative paths will not work.<|eot_id|>
-""".lstrip()
+""".strip()
 
 
 message = message.replace("%working_directory%", "/workspace/django")
@@ -146,7 +146,7 @@ def parse_tool_calls(content):
     return tool_calls
 
 
-ITERATIONS = 5
+ITERATIONS = 15
 
 client = LlamaStackClient(base_url=f"http://localhost:{os.environ['LLAMA_STACK_PORT']}")
 
