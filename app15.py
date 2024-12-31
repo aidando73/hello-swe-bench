@@ -141,7 +141,7 @@ def parse_tool_calls(content):
             result = [(name, params) for name, params in result]
             tool_calls.extend(result)
         else:
-            print("Not valid tool call: ", match.group(1))
+            print("Tool call invalid syntax: ", match.group(1))
     return tool_calls
 
 
@@ -241,7 +241,7 @@ for i in range(ITERATIONS):
 
 
 if eval_dir:
-    with open(os.path.join(eval_dir, f"{sample_row['instance_id']}-prompt.txt"), "w") as f:
+    with open(os.path.join(eval_dir, "logs", f"{sample_row['instance_id']}-prompt.txt"), "w") as f:
         f.write(message)
 else:
     with open("message.txt", "w") as f:
