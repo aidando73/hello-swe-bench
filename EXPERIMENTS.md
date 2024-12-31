@@ -23,4 +23,4 @@ stdbuf -o0 tee -a logs/$log_file
 - Llama 3.3 70B
 - 30 max iterations on each instance
 - Rough cost estimate: $150 USD
-- Start credits: $205.63
+- Start credits: $204.83
