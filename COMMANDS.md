@@ -88,6 +88,10 @@ stdbuf -o0 tee -a $eval_dir/harness.log
 log_file=$(cat current_instance.txt)_$(date +%Y-%m-%d_%H-%M).log && \
 bash -c "python setup7.py && python app14.py && python validate7.py"  2>&1 | \
 stdbuf -o0 tee -a logs/$log_file
+
+eval_dir=$(realpath evals/v15) && \
+python eval7.py $eval_dir  2>&1 | \
+stdbuf -o0 tee -a $eval_dir/harness.log
 ```
 
 Dependencies:
