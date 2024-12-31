@@ -15,21 +15,21 @@ df_django = df_django[df_django['version'].str.contains('5.') | df_django['versi
 # Read current instance index
 if os.path.exists('current_instance.txt'):
     with open('current_instance.txt', 'r') as f:
-        instance_idx, instance_id = f.read().strip().split(',')
-        instance_idx = int(instance_idx)
+        instance_id = f.read().strip()
 else:
-    instance_idx = 0
     instance_id = df_django.iloc[0]['instance_id']
 
 
-sample_row = df_django.iloc[instance_idx]
+sample_row = df_django[df_django['instance_id'] == instance_id].iloc[0]
 
 # Write new instance
-with open('current_instance.txt', 'w') as f:
-    next_instance_idx = (instance_idx + 1) % len(df_django)
-    f.write(f"{next_instance_idx},{df_django.iloc[next_instance_idx]['instance_id']}")
+# with open('current_instance.txt', 'w') as f:
+#     current_idx = df_django[df_django['instance_id'] == instance_id].index[0]
+#     next_idx = (current_idx + 1) % len(df_django)
+#     next_instance_id = df_django.iloc[next_idx]['instance_id']
+#     f.write(next_instance_id)
 
-print(f"Setting up instance: {sample_row['instance_id']}, instance_idx: {instance_idx}, version: {sample_row['version']}")
+print(f"Setting up instance: {sample_row['instance_id']}, version: {sample_row['version']}")
 
 import json
 
