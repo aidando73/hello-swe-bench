@@ -14,10 +14,6 @@ with open(os.path.join(SCRIPT_DIR, 'django/test.patch'), 'w') as f:
 
 eval_dir = sys.argv[1] if len(sys.argv) > 1 else None
 
-# print(json.dumps(sample_row, indent=4))
-
-# print(sample_row["base_commit"])
-
 print("Applying patch...")
 os.system(f"cd {SCRIPT_DIR}/django && git apply test.patch")
 print('\033[92mPatch applied\033[0m')
@@ -60,11 +56,6 @@ test_result =os.system(
     f"./tests/runtests.py --settings=test_sqlite --parallel 1 {' '.join(directives)}'"
 )
 
-# Get latest eval log file
-eval_logs_dir = os.path.join(SCRIPT_DIR, 'logs', 'evals')
-eval_files = sorted(os.listdir(eval_logs_dir))
-latest_eval = eval_files[-1] if eval_files else None
-
 if test_result == 0:
     print('\033[92mTest passed\033[0m')
     result = "pass"
@@ -72,9 +63,10 @@ else:
     print('\033[91mTest failed\033[0m')
     result = "fail"
 
-with open(os.path.join(eval_logs_dir, latest_eval), 'a') as f:
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    f.write(f"{sample_row['instance_id']},{result},{timestamp}\n")
+if eval_dir:
+    with open(os.path.join(eval_dir, "eval.log"), 'a') as f:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        f.write(f"{sample_row['instance_id']},{result},{timestamp}\n")
 
 print("Reverting patch...")
 os.system(f"cd {SCRIPT_DIR}/django && git apply -R test.patch")
