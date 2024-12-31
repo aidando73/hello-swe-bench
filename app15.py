@@ -13,11 +13,6 @@ MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
 
 formatter = ChatFormat(Tokenizer.get_instance())
 
-if "3.2" in MODEL_ID or "3.3" in MODEL_ID:
-    tool_prompt_format = "python_list"
-else:
-    tool_prompt_format = "json"
-
 file_tree = os.popen("cd django && git ls-tree -r --name-only HEAD").read()
 
 eval_dir = sys.argv[1] if len(sys.argv) > 1 else None
@@ -27,7 +22,6 @@ with open("sample_row.json", "r") as f:
 
 problem_statement = sample_row["problem_statement"]
 
-# We don't add <|begin_of_text|> because fireworks 
 message = """
 <|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
