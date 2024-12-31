@@ -39,6 +39,7 @@ If none of the function can be used, point it out. If the given question lacks t
 also point it out. You should only return the function call in tools call sections.
 
 If you decide to invoke any of the function(s), you MUST put it in the format of <tool>[func_name1(params_name1=params_value1, params_name2=params_value2...), func_name2(params)]</tool>
+If you decide to invoke multiple functions, you MUST put commas between the function calls. E.g., <tool>[func_name1(params), func_name2(params), func_name3(params)]</tool>
 
 Here is a list of functions in JSON format that you can invoke.
 
@@ -110,9 +111,10 @@ def parse_tool_calls(content):
         if not is_valid_python_list(tool_content):
             # Sometimes Llama returns a tool call without the list
             tool_content = f"[{tool_content}]"
+
         if is_valid_python_list(tool_content):
             result = parse_python_list_for_function_calls(tool_content)
-            tool_calls.append(result)
+            tool_calls.extend(result)
         else:
             print("Not valid tool call: ", tool_content)
     return tool_calls
@@ -128,16 +130,20 @@ for i in range(ITERATIONS):
         model_id=MODEL_ID,
         content=message,
     )
-    print("Raw:", response.content)
     thinking_match = re.search(r'<thinking>(.*?)</thinking>', response.content, re.DOTALL)
     if thinking_match:
         print("\033[94mThinking:", thinking_match.group(1).strip(), "\033[0m")
+
+    message += response.content
+    message += f"<|eot_id|>"
+
     # Parse tool tags from response
     tool_calls = parse_tool_calls(response.content)
     print("\033[92mtool_calls: ", tool_calls, "\033[0m")
 
-    message += response.content
-    message += f"<|eot_id|>"
+    if not tool_calls and not thinking_match:
+        print(f"\033[94mThinking: {response.content}\033[0m")
+
 
 with open("message.txt", "w") as f:
     f.write(message)
