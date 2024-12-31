@@ -105,6 +105,18 @@ message = message.replace("%file_tree%", file_tree)
 message = message.replace("%problem_statement%", problem_statement)
 
 def parse_tool_calls(content):
+    """
+    Parse tool calls from the content.
+    
+    Args:
+        content (str): The content to parse tool calls from.
+        
+    Returns:
+        list[tuple]: A list of tuples containing:
+            - name (str): The name of the tool
+            - params (dict): The parameters of the tool 
+            - tool_content (str): The original tool content
+    """
     tool_calls = []
     for match in re.finditer(r'<tool>(.*?)</tool>', content, re.DOTALL):
         tool_content = match.group(1)
@@ -114,6 +126,8 @@ def parse_tool_calls(content):
 
         if is_valid_python_list(tool_content):
             result = parse_python_list_for_function_calls(tool_content)
+            # Add the original tool content to each result tuple
+            result = [(name, params, tool_content) for name, params in result]
             tool_calls.extend(result)
         else:
             print("Not valid tool call: ", tool_content)
@@ -139,8 +153,20 @@ for i in range(ITERATIONS):
 
     # Parse tool tags from response
     tool_calls = parse_tool_calls(response.content)
-    for tool_name, tool_params in tool_calls:
+    for tool_call in tool_calls:
+        tool_name, tool_params = tool_call
+        message += f"<|start_header_id|>tool<|end_header_id|>\n\n"
+        message += f"{tool_name}({tool_params})\n\n"
         print(f"\033[92mCalling tool: {tool_name}({tool_params})\033[0m")
+        if tool_name == "replace_in_file":
+            pass
+        elif tool_name == "view_file":
+            pass
+        else:
+            print(f"\033[91mUnknown tool: {tool_name}\033[0m")
+            # TODO - does this ever fire? If so we should add into message
+        message += f"<|eot_id|>"
+
 
     if not tool_calls and not thinking_match:
         print(f"\033[94mThinking: {response.content}\033[0m")
