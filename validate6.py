@@ -44,12 +44,14 @@ print('\033[94m' + f"Running command: ./tests/runtests.py --settings=test_sqlite
 os.system(
     f"cd {SCRIPT_DIR}/django && "
     f"source ~/miniconda3/bin/activate && "
-    f"conda activate {environment} && "
+    f"conda activate ./{environment} && "
     f"python -m pip install -e ."
 )
 
 test_result =os.system(
     f"cd {SCRIPT_DIR}/django && "
+    f"source ~/miniconda3/bin/activate && "
+    f"conda activate ./{environment} && "
     f"./tests/runtests.py --settings=test_sqlite --parallel 1 {' '.join(directives)}"
 )
 
@@ -59,6 +61,6 @@ else:
     print('\033[91mTest failed\033[0m')
 
 print("Reverting patch...")
-# os.system(f"cd {SCRIPT_DIR}/django && git apply -R test.patch")
-# print('\033[92mPatch reverted\033[0m')
+os.system(f"cd {SCRIPT_DIR}/django && git apply -R test.patch")
+print('\033[92mPatch reverted\033[0m')
 
