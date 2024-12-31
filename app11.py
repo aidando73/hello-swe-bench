@@ -57,7 +57,7 @@ ViewFileTool = {
     },
 }
 
-SYSTEM_PROMPT = """
+INITIAL_PROMPT = """
 You are an expert software engineer.
 You will be given a file tree in <file_tree> and a problem statement in <problem_statement>.
 
