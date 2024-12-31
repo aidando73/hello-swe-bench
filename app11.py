@@ -107,7 +107,7 @@ Here is a list of functions in JSON format that you can invoke.
         }
     }
 ]
-"""
+""".lstrip()
 
 ITERATIONS = 5
 
@@ -151,11 +151,9 @@ client = LlamaStackClient(base_url=f"http://localhost:{os.environ['LLAMA_STACK_P
 
 for i in range(ITERATIONS):
     print(f"\033[95mIteration {i+1}\033[0m")
-    response = client.inference.chat_completion(
+    response = client.inference.completion(
         model_id=MODEL_ID,
         messages=messages,
-        tools=[ReplaceInFileTool, ViewFileTool],
-        tool_prompt_format=tool_prompt_format,
     )
     message = response.completion_message
     messages.append(message)
