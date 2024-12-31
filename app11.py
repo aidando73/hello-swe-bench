@@ -1,12 +1,19 @@
 import json
 import os
 from llama_stack_client import LlamaStackClient
+from llama_models.llama3.api.chat_format import ChatFormat
 
 # MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
 MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
 # model = "anthropic/claude-3-5-sonnet-20240620"
 
 # git ls-tree -r --name-only HEAD
+
+chat_format = ChatFormat(
+    model_id=MODEL_ID,
+    system_prompt="You are an expert software engineer.",
+    user_prompt="Please start by viewing files in the repository to understand the problem.",
+)
 
 if "3.2" in MODEL_ID or "3.3" in MODEL_ID:
     tool_prompt_format = "python_list"
