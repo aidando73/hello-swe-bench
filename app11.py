@@ -77,15 +77,15 @@ Here is a list of functions in JSON format that you can invoke.
 ]<|eot_id|><|start_header_id|>user<|end_header_id|>
 
 <working_directory>
-{working_directory}
+%working_directory%
 </working_directory>
 
 <repository>
-{file_tree}
+%file_tree%
 </repository>
 
 <problem_statement>
-{problem_statement}
+%problem_statement%
 </problem_statement>
 
 Please start by viewing files in the repository to understand the problem.
@@ -93,11 +93,9 @@ Please explain your reasoning before you make any edits in a <thinking> tag.<|eo
 """.lstrip()
 
 
-# message = message.format(
-#     # working_directory=os.getcwd() + "/django",
-#     # file_tree=file_tree,
-#     # problem_statement=problem_statement,
-# )
+message = message.replace("%working_directory%", os.getcwd() + "/django")
+message = message.replace("%file_tree%", file_tree)
+message = message.replace("%problem_statement%", problem_statement)
 
 ITERATIONS = 5
 
