@@ -135,7 +135,6 @@ def parse_tool_calls(content):
             if not tool_content.endswith(']'):
                 tool_content = f"{tool_content}]"
 
-            print("Not valid tool call: ", tool_content)
             continue
 
         if is_valid_python_list(tool_content):
