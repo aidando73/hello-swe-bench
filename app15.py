@@ -99,7 +99,7 @@ Please explain your reasoning before you make any edits in a <thinking> tag.
 
 Please start by viewing files in the repository to understand the problem.
 You are in the working directory as specified in <working_directory>. Please specify paths in absolute paths only. Relative paths will not work.<|eot_id|>
-""".strip()
+""".lstrip()
 
 
 message = message.replace("%working_directory%", "/workspace/django")
