@@ -156,9 +156,9 @@ client = LlamaStackClient(base_url=f"http://localhost:{os.environ['LLAMA_STACK_P
 finished = False
 
 for i in range(ITERATIONS):
+    print(f"Iteration {i+1} of {ITERATIONS}")
     if finished:
-        print("\033[92mTask finished\033[0m")
-        break
+         break
     message += "<|start_header_id|>assistant<|end_header_id|>\n\n"
     response = client.inference.completion(
         model_id=MODEL_ID,
@@ -240,9 +240,10 @@ for i in range(ITERATIONS):
         message += f"<|eot_id|>"
 
 
-    if not tool_calls and not thinking_match:
-        print(f"\033[94mThinking: {response.content}\033[0m")
-
+if finished:
+    print("\033[92mAgent marked as finished\033[0m")
+else:
+    print("\033[91mMax iterations reached\033[0m")
 
 if eval_dir:
     with open(os.path.join(eval_dir, "logs", f"{sample_row['instance_id']}-prompt.txt"), "w") as f:
