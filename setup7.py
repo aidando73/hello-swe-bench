@@ -12,22 +12,15 @@ df_django = df[df['repo'] == 'django/django']
 # Only version 5.x instances
 df_django = df_django[df_django['version'].str.contains('5.') | df_django['version'].str.contains('4.')].reset_index(drop=True)
 
-# Read current instance index
-if os.path.exists('current_instance.txt'):
-    with open('current_instance.txt', 'r') as f:
-        instance_id = f.read().strip()
-else:
-    instance_id = df_django.iloc[0]['instance_id']
+instance_id = sys.argv[1] if len(sys.argv) > 1 else None
 
+if not instance_id:
+    # Read current instance id
+    if os.path.exists('current_instance.txt'):
+        with open('current_instance.txt', 'r') as f:
+            instance_id = f.read().strip()
 
 sample_row = df_django[df_django['instance_id'] == instance_id].iloc[0]
-
-# Write new instance
-# with open('current_instance.txt', 'w') as f:
-#     current_idx = df_django[df_django['instance_id'] == instance_id].index[0]
-#     next_idx = (current_idx + 1) % len(df_django)
-#     next_instance_id = df_django.iloc[next_idx]['instance_id']
-#     f.write(next_instance_id)
 
 print(f"Setting up instance: {sample_row['instance_id']}, version: {sample_row['version']}")
 
