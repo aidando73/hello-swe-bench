@@ -2,6 +2,8 @@ import json
 import os
 from llama_stack_client import LlamaStackClient
 from llama_models.llama3.api.chat_format import ChatFormat
+from llama_models.llama3.api.tokenizer import Tokenizer
+from llama_models.llama3.api.datatypes import StopReason
 
 # MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
 MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
@@ -9,11 +11,7 @@ MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
 
 # git ls-tree -r --name-only HEAD
 
-chat_format = ChatFormat(
-    model_id=MODEL_ID,
-    system_prompt="You are an expert software engineer.",
-    user_prompt="Please start by viewing files in the repository to understand the problem.",
-)
+formatter = ChatFormat(Tokenizer.get_instance())
 
 if "3.2" in MODEL_ID or "3.3" in MODEL_ID:
     tool_prompt_format = "python_list"
@@ -30,6 +28,7 @@ with open("sample_row.json", "r") as f:
 
 problem_statement = sample_row["problem_statement"]
 
+# We don't add <|begin_of_text|> because fireworks 
 message = """
 <|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
@@ -96,7 +95,9 @@ Here is a list of functions in JSON format that you can invoke.
 </problem_statement>
 
 Please start by viewing files in the repository to understand the problem.
-Please explain your reasoning before you make any edits in a <thinking> tag.<|eot_id|>
+Please explain your reasoning before you make any edits in a <thinking> tag.<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+
 """.lstrip()
 
 
@@ -113,4 +114,4 @@ response = client.inference.completion(
     content=message,
 )
 message = response
-print(message)
+print(formatter.decode_assistant_message_from_content(message.content, StopReason.end_of_turn))
