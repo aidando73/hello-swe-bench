@@ -55,6 +55,8 @@ test_result =os.system(
     f"./tests/runtests.py --settings=test_sqlite --parallel 1 {' '.join(directives)}"
 )
 
+
+
 if test_result == 0:
     print('\033[92mTest passed\033[0m')
 else:

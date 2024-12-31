@@ -58,4 +58,7 @@ stdbuf -o0 tee -a logs/$log_file
 (cd django && source ~/miniconda3/bin/activate && conda create --prefix ./env_3_8 python=3.8)
 (cd django && source ~/miniconda3/bin/activate && conda create --prefix ./env_3_9 python=3.9)
 (cd django && source ~/miniconda3/bin/activate && conda create --prefix ./env_3_11 python=3.11)
+
+
+touch logs/evals/$(date "+%Y-%m-%d_%H:%M").log
 ```
