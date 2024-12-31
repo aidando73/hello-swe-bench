@@ -135,13 +135,17 @@ def parse_tool_calls(content):
             if not tool_content.endswith(']'):
                 tool_content = f"{tool_content}]"
 
-        if is_valid_python_list(tool_content):
+        try:
             result = parse_python_list_for_function_calls(tool_content)
-            # Add the original tool content to each result tuple
-            result = [(name, params) for name, params in result]
-            tool_calls.extend(result)
-        else:
-            print("Tool call invalid syntax: ", match.group(1))
+            if is_valid_python_list(tool_content):
+                # Add the original tool content to each result tuple
+                result = [(name, params) for name, params in result]
+                tool_calls.extend(result)
+            else:
+                print("Tool call invalid syntax: ", match.group(1))
+        except Exception as e:
+            print("Tool call invalid syntax: Could not parse tool call: ", e)
+
     return tool_calls
 
 
