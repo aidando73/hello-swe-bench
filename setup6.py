@@ -14,16 +14,17 @@ df_django = df_django[df_django['version'].str.contains('5.') | df_django['versi
 
 # Read current instance index
 with open('current_instance.txt', 'r') as f:
-    instance_idx = int(f.read().strip())
+    instance_idx, instance_id = f.read().strip().split(',')
+    instance_idx = int(instance_idx)
 
 # Increment instance index
 instance_idx = (instance_idx + 1) % len(df_django)
 
 sample_row = df_django.iloc[instance_idx]
 
-# Write new instance index
+# Write new instance
 with open('current_instance.txt', 'w') as f:
-    f.write(str(instance_idx))
+    f.write(f"{instance_idx},{sample_row['instance_id']}")
 
 print(f"Setting up instance: {sample_row['instance_id']}, instance_idx: {instance_idx}, version: {sample_row['version']}")
 

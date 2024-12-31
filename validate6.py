@@ -60,12 +60,16 @@ eval_logs_dir = os.path.join(SCRIPT_DIR, 'logs', 'evals')
 eval_files = sorted(os.listdir(eval_logs_dir))
 latest_eval = eval_files[-1] if eval_files else None
 
-print(f"Latest eval log file: {latest_eval}")
 
 if test_result == 0:
     print('\033[92mTest passed\033[0m')
+    result = "pass"
 else:
     print('\033[91mTest failed\033[0m')
+    result = "fail"
+
+with open(os.path.join(eval_logs_dir, latest_eval), 'a') as f:
+    f.write(f"Test results: {result}\n")
 
 print("Reverting patch...")
 os.system(f"cd {SCRIPT_DIR}/django && git apply -R test.patch")
