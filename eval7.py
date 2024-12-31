@@ -17,6 +17,7 @@ with open('current_instance.txt', 'w') as f:
     f.write(f"0,{df_django.iloc[0]['instance_id']}")
 
 for index, row in df_django.iterrows():
-    os.system(f"python setup6.py")
+    instance_id = row['instance_id']
+    os.system(f"python setup6.py {instance_id}")
     os.system(f"python app12.py")
     os.system(f"python validate7.py {eval_dir}")
