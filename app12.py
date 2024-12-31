@@ -147,21 +147,43 @@ for i in range(ITERATIONS):
     thinking_match = re.search(r'<thinking>(.*?)</thinking>', response.content, re.DOTALL)
     if thinking_match:
         print("\033[94mThinking:", thinking_match.group(1).strip(), "\033[0m")
+    else:
+        # Check for any text outside of tool tags
+        non_tool_content = re.sub(r'<tool>.*?</tool>', '', response.content, flags=re.DOTALL).strip()
+        if non_tool_content:
+            print(f"\033[94m{non_tool_content}\033[0m")
 
     message += response.content
     message += f"<|eot_id|>"
 
     # Parse tool tags from response
     tool_calls = parse_tool_calls(response.content)
-    for tool_call in tool_calls:
-        tool_name, tool_params = tool_call
+    for tool_name, tool_params, original_tool_content in tool_calls:
         message += f"<|start_header_id|>tool<|end_header_id|>\n\n"
-        message += f"{tool_name}({tool_params})\n\n"
-        print(f"\033[92mCalling tool: {tool_name}({tool_params})\033[0m")
+        message += f"{original_tool_content}\n"
+        message += "Result: \n"
+        print(f"\033[92mCalling tool: {original_tool_content}\033[0m")
         if tool_name == "replace_in_file":
-            pass
+            try:
+                with open(f"django/{tool_params['path']}", "r") as f:
+                    file_content = f.read()
+                with open(f"django/{tool_params['path']}", "w") as f:
+                    old_str = tool_params["old_str"]
+                    new_str = tool_params["new_str"]
+                    new_content = file_content.replace(old_str, new_str)
+                    f.write(new_content)
+                message += f"Result: {new_content}\n"
+            except FileNotFoundError:
+                print(f"File {tool_params['path']} not found. Skipping...")
+                message += f"Result: Error - File {tool_params['path']} not found. Skipping...\n"
         elif tool_name == "view_file":
-            pass
+            try:
+                with open(f"django/{tool_params['path']}", "r") as f:
+                    file_content = f.read()
+                message += f"Result: {file_content}\n"
+            except FileNotFoundError:
+                print(f"File {tool_params['path']} not found. Skipping...")
+                message += f"Result: Error - File {tool_params['path']} not found. Skipping...\n"
         else:
             print(f"\033[91mUnknown tool: {tool_name}\033[0m")
             # TODO - does this ever fire? If so we should add into message
@@ -170,6 +192,7 @@ for i in range(ITERATIONS):
 
     if not tool_calls and not thinking_match:
         print(f"\033[94mThinking: {response.content}\033[0m")
+    
 
 
 with open("message.txt", "w") as f:
