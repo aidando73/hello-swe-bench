@@ -22,4 +22,4 @@ stdbuf -o0 tee -a logs/$log_file
 - 58 instances
 - Llama 3.3 70B
 - 30 max iterations on each instance
-- Rough cost estimate: $150
+- Rough cost estimate: $150 USD
