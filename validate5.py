@@ -17,8 +17,6 @@ print("Applying patch...")
 os.system(f"cd {SCRIPT_DIR}/django && git apply test.patch")
 print('\033[92mPatch applied\033[0m')
 
-os.system(f"cd {SCRIPT_DIR}/django && python -m pip install -e .")
-
 diff_pat = r"diff --git a/.* b/(.*)"
 test_patch = sample_row['test_patch']
 directives = re.findall(diff_pat, test_patch)
