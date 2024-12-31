@@ -81,7 +81,7 @@ python eval6.py  2>&1 | \
 stdbuf -o0 tee -a logs/$log_file
 
 
-eval_dir=$(realpath evals/v12.1-5iterations-3.3-70B) && \
+eval_dir=$(realpath evals/v14) && \
 python eval7.py $eval_dir  2>&1 | \
 stdbuf -o0 tee -a $eval_dir/harness.log
 
