@@ -94,7 +94,8 @@ screen -S agent-eval
 
 eval_dir=$(realpath evals/v15.2) && \
 python eval7.py $eval_dir  2>&1 | \
-stdbuf -o0 tee -a $eval_dir/harness.log
+stdbuf -o0 tee -a $eval_dir/harness.log && \
+cat ~/dev/llama-stack/llama-pipe > $eval_dir/llama-stack.log
 ```
 
 Dependencies:
