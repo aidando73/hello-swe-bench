@@ -46,9 +46,7 @@ def list_files(path, depth=1):
 
     files = os.popen(f"cd {path} && git ls-tree -r --name-only HEAD").read()
     files = files.splitlines()
-    # tests/test.py
-    #  0     1
-    # tests/core/__init__.py
+
     root = Directory(path)
     for file in files:
         # Sometimes git ls-tree returns files with quotes around them
@@ -62,9 +60,12 @@ def list_files(path, depth=1):
             if i == len(parts) - 1:
                 cur.add_file(parts[i])
             else:
-                temp = Directory(parts[i])
-                cur.add_directory(temp)
-                cur = temp
+                if Directory(parts[i]) not in cur.directories:
+                    temp = Directory(parts[i])
+                    cur.add_directory(temp)
+                    cur = temp
+                else:
+                    cur = next(d for d in cur.directories if d.name == parts[i])
     res = []
     def dfs(directory: Directory, path=""):
         # Recursively process subdirectories
