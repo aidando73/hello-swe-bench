@@ -16,7 +16,6 @@ MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
 
 formatter = ChatFormat(Tokenizer.get_instance())
 
-file_tree = os.popen("cd django && git ls-tree -r --name-only HEAD").read()
 
 eval_dir = sys.argv[1] if len(sys.argv) > 1 else None
 
@@ -29,7 +28,7 @@ message = """
 <|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
 You are an expert software engineer.
-You will be given a problem statement in <problem_statement>.
+You will be given a problem statement in <problem_statement>
 
 Based on the <problem_statement>, you will need to make one or more function/tool calls to achieve the purpose.
 If none of the function can be used, point it out. If the given question lacks the parameters required by the function,
@@ -92,6 +91,10 @@ Please explain your reasoning before you make any edits in a <thinking> tag.
 %working_directory%
 </working_directory>
 
+<file_tree>
+%file_tree%
+</file_tree>
+
 <problem_statement>
 %problem_statement%
 </problem_statement>
@@ -101,8 +104,9 @@ You are in the working directory as specified in <working_directory>. Please spe
 """.lstrip()
 
 
+file_tree = os.popen("cd django && git ls-tree -r --name-only HEAD").read()
 message = message.replace("%working_directory%", "/workspace/django")
-# message = message.replace("%file_tree%", file_tree)
+message = message.replace("%file_tree%", file_tree)
 message = message.replace("%problem_statement%", problem_statement)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
