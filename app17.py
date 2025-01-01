@@ -99,14 +99,31 @@ Please explain your reasoning before you make any edits in a <thinking> tag.
 %problem_statement%
 </problem_statement>
 
-Please start by viewing files in the repository to understand the problem.
-You are in the working directory as specified in <working_directory>. Please specify paths in absolute paths only. Relative paths will not work.<|eot_id|>
-""".lstrip()
+You are in the working directory as specified in <working_directory>. Please specify paths in absolute paths only.
+I have included the top level files and directories in the repository in <file_tree>.
+Please start by viewing files in the repository to understand the problem.<|eot_id|>
+""".strip()
 
 
 file_tree = os.popen("cd django && git ls-tree -r --name-only HEAD").read()
+
+# Filter to only include top-level files and directories
+top_level = set()
+
+for line in file_tree.splitlines():
+    # Sometimes git ls-tree returns lines with quotes around them. E.g., if there are spaces in the file name.
+    line = line.strip("\"")
+    if "/" in line:
+        top_level.add(line.split("/")[0] + "/")
+    else:
+        top_level.add(line)
+
+# Sort directories first by checking if item ends with "/"
+top_level = sorted(top_level, key=lambda x: (not x.endswith("/"), x))
+
+
 message = message.replace("%working_directory%", "/workspace/django")
-message = message.replace("%file_tree%", file_tree)
+message = message.replace("%file_tree%", "\n".join(top_level))
 message = message.replace("%problem_statement%", problem_statement)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
