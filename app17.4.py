@@ -50,7 +50,7 @@ Here is a list of functions in JSON format that you can invoke.
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Absolute path to a directory, e.g. `/workspace/django`. If referencing a file, will return the file."
+                    "description": "Absolute path to a directory, e.g. `/workspace/django`. If referencing a file, will return the name of the file."
                 }
             },
         }
