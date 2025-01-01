@@ -207,7 +207,7 @@ for i in range(ITERATIONS):
         if tool_call[0] == "error":
             print(f"\033[91mError: Could not parse tool call: {tool_call[1]} - {tool_call[2]}\033[0m")
             message += f"<|start_header_id|>tool<|end_header_id|>\n\n"
-            message += f"Error - Could not parse tool call: {tool_call[1]} - {tool_call[2]}\n"
+            message += f"ERROR - Could not parse tool call: {tool_call[1]} - {tool_call[2]}"
             message += f"<|eot_id|>"
             continue
 
