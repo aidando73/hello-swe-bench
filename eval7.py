@@ -30,7 +30,7 @@ with open(log_path) as f:
 for index, row in df_django.iterrows():
     instance_id = row['instance_id']
     os.system(f"python setup7.py {instance_id}")
-    os.system(f"python app17.py {eval_dir}")
+    os.system(f"python app17.1.py {eval_dir}")
     os.system(f"python validate7.py {eval_dir}")
 
 # instance_id = df_django.iloc[0]['instance_id']
