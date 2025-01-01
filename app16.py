@@ -215,11 +215,7 @@ for i in range(ITERATIONS):
         tool_call_str = f"[{tool_name}({', '.join([f'{param_name}={param_value}' for param_name, param_value in tool_params.items()])})]"
         message += f"Executed tool call: {tool_call_str}\n"
         print(f"\033[92mCalling tool: {tool_call_str}\033[0m")
-        if tool_name == "replace_in_file":
-            if "old_str" not in tool_params:
-                print(f"\033[91mold_str not found in tool params: {tool_params}\033[0m")
-                message += f"Result: Error - old_str not found in tool params. Please ensure the tool params are correct.\n"
-                continue
+        if tool_name == "edit_file":
             if "new_str" not in tool_params:
                 print(f"\033[91mnew_str not found in tool params: {tool_params}\033[0m")
                 message += f"Result: Error - new_str not found in tool params. Please ensure the tool params are correct.\n"
@@ -232,13 +228,17 @@ for i in range(ITERATIONS):
                     # If it doesn't start with /workspace, we'll assume it's a relative path
                     path = os.path.join(script_dir, path)
 
-                with open(f"{path}", "r") as f:
-                    file_content = f.read()
-                with open(f"{path}", "w") as f:
-                    old_str = tool_params["old_str"]
-                    new_str = tool_params["new_str"]
-                    new_content = file_content.replace(old_str, new_str)
-                    f.write(new_content)
+                if "old_str" in tool_params:
+                    with open(f"{path}", "r") as f:
+                        file_content = f.read()
+                    with open(f"{path}", "w") as f:
+                        old_str = tool_params["old_str"]
+                        new_str = tool_params["new_str"]
+                        new_content = file_content.replace(old_str, new_str)
+                        f.write(new_content)
+                else:
+                    with open(f"{path}", "w") as f:
+                        f.write(tool_params["new_str"])
                 message += f"Result: File successfully updated\n"
             except FileNotFoundError:
                 print(
