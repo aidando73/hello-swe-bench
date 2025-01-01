@@ -164,7 +164,7 @@ def parse_tool_calls(content):
     return tool_calls
 
 def display_tool_params(tool_params):
-    return f"({', '.join([f'{param_name}=\"{param_value}\"' for param_name, param_value in tool_params.items()])})"
+    return f"({', '.join([param_name + '=\"' + param_value + '\"' for param_name, param_value in tool_params.items()])})"
 
 ITERATIONS = 15
 
