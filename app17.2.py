@@ -120,7 +120,7 @@ Please explain your reasoning before you make any edits in a <thinking> tag.
 
 You are in the working directory as specified in <working_directory>. Please specify paths in absolute paths only.
 I have included the top level files and directories in the repository in <file_tree>.
-Please start by viewing files in the repository to understand the problem.<|eot_id|>
+Please start by listing out and viewing files in the repository to understand the problem.<|eot_id|>
 """.strip()
 
 
@@ -190,7 +190,7 @@ def display_tool_params(tool_params):
         "("
         + ", ".join(
             [
-                param_name + '="' + param_value + '"'
+                param_name + '="' + str(param_value) + '"'
                 for param_name, param_value in tool_params.items()
             ]
         )
