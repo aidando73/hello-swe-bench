@@ -163,8 +163,19 @@ def parse_tool_calls(content):
 
     return tool_calls
 
+
 def display_tool_params(tool_params):
-    return f"({', '.join([param_name + '=\"' + param_value + '\"' for param_name, param_value in tool_params.items()])})"
+    return (
+        "("
+        + ", ".join(
+            [
+                param_name + '="' + param_value + '"'
+                for param_name, param_value in tool_params.items()
+            ]
+        )
+        + ")"
+    )
+
 
 ITERATIONS = 15
 
@@ -201,9 +212,13 @@ for i in range(ITERATIONS):
     tool_calls = parse_tool_calls(response.content)
     for tool_call in tool_calls:
         if tool_call[0] == "error":
-            print(f"\033[91mERROR - Could not parse tool call: {tool_call[1]} - {tool_call[2]}\033[0m")
+            print(
+                f"\033[91mERROR - Could not parse tool call: {tool_call[1]} - {tool_call[2]}\033[0m"
+            )
             message += f"<|start_header_id|>tool<|end_header_id|>\n\n"
-            message += f"ERROR - Could not parse tool call: {tool_call[1]} - {tool_call[2]}"
+            message += (
+                f"ERROR - Could not parse tool call: {tool_call[1]} - {tool_call[2]}"
+            )
             message += f"<|eot_id|>"
             continue
 
@@ -214,7 +229,9 @@ for i in range(ITERATIONS):
         print(f"\033[92mCalling tool: {tool_call_str}\033[0m")
         if tool_name == "edit_file":
             if "new_str" not in tool_params:
-                print(f"\033[91mnew_str not found in tool params: {display_tool_params(tool_params)}\033[0m")
+                print(
+                    f"\033[91mnew_str not found in tool params: {display_tool_params(tool_params)}\033[0m"
+                )
                 message += f"Result: ERROR - new_str not found in tool params. {display_tool_params(tool_params)}\n"
                 continue
             try:
