@@ -121,7 +121,7 @@ Please start by listing out and viewing files in the repository to understand th
 
 
 message = message.replace("%working_directory%", "/workspace/django")
-message = message.replace("%file_tree%", "\n".join(list_files("/workspace/django", depth=1)))
+message = message.replace("%file_tree%", "\n".join(list_files("/workspace/django", depth=2)))
 message = message.replace("%problem_statement%", problem_statement)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
