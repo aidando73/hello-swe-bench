@@ -248,97 +248,101 @@ for i in range(ITERATIONS):
         tool_call_str = f"[{tool_name}{display_tool_params(tool_params)}]"
         message += f"Executing tool call: {tool_call_str}\n"
         print(f"\033[92mCalling tool: {tool_call_str}\033[0m")
-        if tool_name == "list_files":
-            if "path" not in tool_params:
-                print(
-                    f"\033[91mResult: ERROR - path not found in tool params: {display_tool_params(tool_params)}\033[0m"
-                )
-                message += f"Result: ERROR - path not found in tool params. {display_tool_params(tool_params)}\n"
-                continue
+        try:
+            if tool_name == "list_files":
+                if "path" not in tool_params:
+                    print(
+                        f"\033[91mResult: ERROR - path not found in tool params: {display_tool_params(tool_params)}\033[0m"
+                    )
+                    message += f"Result: ERROR - path not found in tool params. {display_tool_params(tool_params)}\n"
+                    continue
 
-            path = tool_params["path"]
-
-            if "depth" not in tool_params:
-                depth = 1
-            else:
-                depth = tool_params["depth"]
-            try: 
-                files = list_files(path, depth=depth)
-                message += f"Result: {files}\n"
-            except FileNotFoundError as e:
-                print(f"\033[91mResult: ERROR - Directory not found: {e}\033[0m")
-                message += f"Result: ERROR - Directory not found: {e}\n"
-        elif tool_name == "edit_file":
-            if "new_str" not in tool_params:
-                print(
-                    f"\033[91mnew_str not found in tool params: {display_tool_params(tool_params)}\033[0m"
-                )
-                message += f"Result: ERROR - new_str not found in tool params. {display_tool_params(tool_params)}\n"
-                continue
-            try:
                 path = tool_params["path"]
-                if path.startswith("/workspace/"):
-                    path = os.path.join(script_dir, path[len("/workspace/") :])
-                else:
-                    # If it doesn't start with /workspace, we'll assume it's a relative path
-                    path = os.path.join(script_dir, path)
 
-                if "old_str" in tool_params:
+                if "depth" not in tool_params:
+                    depth = 1
+                else:
+                    depth = tool_params["depth"]
+                try: 
+                    files = list_files(path, depth=depth)
+                    message += f"Result: {files}\n"
+                except FileNotFoundError as e:
+                    print(f"\033[91mResult: ERROR - Directory not found: {e}\033[0m")
+                    message += f"Result: ERROR - Directory not found: {e}\n"
+            elif tool_name == "edit_file":
+                if "new_str" not in tool_params:
+                    print(
+                        f"\033[91mnew_str not found in tool params: {display_tool_params(tool_params)}\033[0m"
+                    )
+                    message += f"Result: ERROR - new_str not found in tool params. {display_tool_params(tool_params)}\n"
+                    continue
+                try:
+                    path = tool_params["path"]
+                    if path.startswith("/workspace/"):
+                        path = os.path.join(script_dir, path[len("/workspace/") :])
+                    else:
+                        # If it doesn't start with /workspace, we'll assume it's a relative path
+                        path = os.path.join(script_dir, path)
+
+                    if "old_str" in tool_params:
+                        with open(f"{path}", "r") as f:
+                            file_content = f.read()
+                        with open(f"{path}", "w") as f:
+                            old_str = tool_params["old_str"]
+                            new_str = tool_params["new_str"]
+                            new_content = file_content.replace(old_str, new_str)
+                            f.write(new_content)
+                    else:
+                        with open(f"{path}", "w") as f:
+                            f.write(tool_params["new_str"])
+                    message += f"Result: File successfully updated\n"
+                    # Get git diff for the specific file after update
+                    # git_diff = os.popen(f"cd django && git diff -- {path}").read()
+                    # if git_diff:
+                    #     message += f"Result: File updated:\n"
+                    #     message += f"{git_diff}\n"
+                    # else:
+                    #     message += f"Result: File unchanged\n"
+                except FileNotFoundError:
+                    print(
+                        f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists."
+                    )
+                    message += f"Result: ERROR - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
+                except IsADirectoryError:
+                    print(
+                        f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory."
+                    )
+                    message += f"Result: ERROR - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
+            elif tool_name == "view_file":
+                try:
+                    path = tool_params["path"]
+                    if path.startswith("/workspace/"):
+                        path = os.path.join(script_dir, path[len("/workspace/") :])
+                    else:
+                        # If it doesn't start with /workspace, we'll assume it's a relative path
+                        path = os.path.join(script_dir, path)
                     with open(f"{path}", "r") as f:
                         file_content = f.read()
-                    with open(f"{path}", "w") as f:
-                        old_str = tool_params["old_str"]
-                        new_str = tool_params["new_str"]
-                        new_content = file_content.replace(old_str, new_str)
-                        f.write(new_content)
-                else:
-                    with open(f"{path}", "w") as f:
-                        f.write(tool_params["new_str"])
-                message += f"Result: File successfully updated\n"
-                # Get git diff for the specific file after update
-                # git_diff = os.popen(f"cd django && git diff -- {path}").read()
-                # if git_diff:
-                #     message += f"Result: File updated:\n"
-                #     message += f"{git_diff}\n"
-                # else:
-                #     message += f"Result: File unchanged\n"
-            except FileNotFoundError:
-                print(
-                    f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists."
-                )
-                message += f"Result: ERROR - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
-            except IsADirectoryError:
-                print(
-                    f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory."
-                )
-                message += f"Result: ERROR - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
-        elif tool_name == "view_file":
-            try:
-                path = tool_params["path"]
-                if path.startswith("/workspace/"):
-                    path = os.path.join(script_dir, path[len("/workspace/") :])
-                else:
-                    # If it doesn't start with /workspace, we'll assume it's a relative path
-                    path = os.path.join(script_dir, path)
-                with open(f"{path}", "r") as f:
-                    file_content = f.read()
-                message += f"Result: {file_content}\n"
-            except FileNotFoundError:
-                print(
-                    f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists."
-                )
-                message += f"Result: ERROR - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
-            except IsADirectoryError:
-                print(
-                    f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory."
-                )
-                message += f"Result: ERROR - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
-        elif tool_name == "finish":
-            finished = True
-            message += f"Result: Task marked as finished\n"
-        else:
-            print(f"\033[91mResult: ERROR - Unknown tool: {tool_name}\033[0m")
-            # TODO - does this ever fire? If so we should add into message
+                    message += f"Result: {file_content}\n"
+                except FileNotFoundError:
+                    print(
+                        f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists."
+                    )
+                    message += f"Result: ERROR - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
+                except IsADirectoryError:
+                    print(
+                        f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory."
+                    )
+                    message += f"Result: ERROR - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
+            elif tool_name == "finish":
+                finished = True
+                message += f"Result: Task marked as finished\n"
+            else:
+                print(f"\033[91mResult: ERROR - Unknown tool: {tool_name}\033[0m")
+                # TODO - does this ever fire? If so we should add into message
+        except Exception as e:
+            print(f"\033[91mResult: ERROR - Calling tool: {tool_name} {e}\033[0m")
+            message += f"Result: ERROR - Calling tool: {tool_name} {e}\n"
         message += f"<|eot_id|>"
 
 
