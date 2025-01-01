@@ -4,7 +4,10 @@ from llama_stack_client import LlamaStackClient
 from llama_models.llama3.api.chat_format import ChatFormat
 from llama_models.llama3.api.tokenizer import Tokenizer
 from llama_models.llama3.api.datatypes import StopReason
-from llama_models.llama3.api.tool_utils import is_valid_python_list, parse_python_list_for_function_calls
+from llama_models.llama3.api.tool_utils import (
+    is_valid_python_list,
+    parse_python_list_for_function_calls,
+)
 import re
 import sys
 
@@ -110,29 +113,30 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 print(f"Script dir: {script_dir}")
 
+
 def parse_tool_calls(content):
     """
     Parse tool calls from the content.
-    
+
     Args:
         content (str): The content to parse tool calls from.
-        
+
     Returns:
         list[tuple]: A list of tuples containing:
             - name (str): The name of the tool
-            - params (dict): The parameters of the tool 
+            - params (dict): The parameters of the tool
         or ("error", tool_content, "error message") if the tool call is invalid
     """
     tool_calls = []
-    for match in re.finditer(r'<tool>(.*?)</tool>', content, re.DOTALL):
+    for match in re.finditer(r"<tool>(.*?)</tool>", content, re.DOTALL):
         tool_content = match.group(1)
         if not is_valid_python_list(tool_content):
             tool_content = tool_content.strip()
 
             # Add square brackets if missing
-            if not tool_content.startswith('['):
+            if not tool_content.startswith("["):
                 tool_content = f"[{tool_content}"
-            if not tool_content.endswith(']'):
+            if not tool_content.endswith("]"):
                 tool_content = f"{tool_content}]"
 
         try:
@@ -142,9 +146,24 @@ def parse_tool_calls(content):
                 result = [(name, params) for name, params in result]
                 tool_calls.extend(result)
             else:
-                tool_calls.append(("error", match.group(0), "Tool call invalid syntax: " + match.group(0)))
+                tool_calls.append(
+                    (
+                        "error",
+                        match.group(0),
+                        "Tool call invalid syntax: " + match.group(0),
+                    )
+                )
         except Exception as e:
-            tool_calls.append(("error", match.group(0), "Tool call invalid syntax: Could not parse tool call: " + match.group(0) + " " + str(e)))
+            tool_calls.append(
+                (
+                    "error",
+                    match.group(0),
+                    "Tool call invalid syntax: Could not parse tool call: "
+                    + match.group(0)
+                    + " "
+                    + str(e),
+                )
+            )
 
     return tool_calls
 
@@ -158,18 +177,22 @@ finished = False
 for i in range(ITERATIONS):
     print(f"Iteration {i+1} of {ITERATIONS}")
     if finished:
-         break
+        break
     message += "<|start_header_id|>assistant<|end_header_id|>\n\n"
     response = client.inference.completion(
         model_id=MODEL_ID,
         content=message,
     )
-    thinking_match = re.search(r'<thinking>(.*?)</thinking>', response.content, re.DOTALL)
+    thinking_match = re.search(
+        r"<thinking>(.*?)</thinking>", response.content, re.DOTALL
+    )
     if thinking_match:
         print("\033[94mThinking:", thinking_match.group(1).strip(), "\033[0m")
     else:
         # Check for any text outside of tool tags
-        non_tool_content = re.sub(r'<tool>.*?</tool>', '', response.content, flags=re.DOTALL).strip()
+        non_tool_content = re.sub(
+            r"<tool>.*?</tool>", "", response.content, flags=re.DOTALL
+        ).strip()
         if non_tool_content:
             print(f"\033[94mThinking: {non_tool_content}\033[0m")
 
@@ -202,13 +225,13 @@ for i in range(ITERATIONS):
                 message += f"Result: Error - new_str not found in tool params. Please ensure the tool params are correct.\n"
                 continue
             try:
-                path = tool_params['path']
-                if path.startswith('/workspace/'):
-                    path = os.path.join(script_dir, path[len('/workspace/'):])
+                path = tool_params["path"]
+                if path.startswith("/workspace/"):
+                    path = os.path.join(script_dir, path[len("/workspace/") :])
                 else:
                     # If it doesn't start with /workspace, we'll assume it's a relative path
                     path = os.path.join(script_dir, path)
-                
+
                 with open(f"{path}", "r") as f:
                     file_content = f.read()
                 with open(f"{path}", "w") as f:
@@ -218,16 +241,20 @@ for i in range(ITERATIONS):
                     f.write(new_content)
                 message += f"Result: File successfully updated\n"
             except FileNotFoundError:
-                print(f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists.")
+                print(
+                    f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists."
+                )
                 message += f"Result: Error - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
             except IsADirectoryError:
-                print(f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory.")
+                print(
+                    f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory."
+                )
                 message += f"Result: Error - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
         elif tool_name == "view_file":
             try:
-                path = tool_params['path']
-                if path.startswith('/workspace/'):
-                    path = os.path.join(script_dir, path[len('/workspace/'):])
+                path = tool_params["path"]
+                if path.startswith("/workspace/"):
+                    path = os.path.join(script_dir, path[len("/workspace/") :])
                 else:
                     # If it doesn't start with /workspace, we'll assume it's a relative path
                     path = os.path.join(script_dir, path)
@@ -235,10 +262,14 @@ for i in range(ITERATIONS):
                     file_content = f.read()
                 message += f"Result: {file_content}\n"
             except FileNotFoundError:
-                print(f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists.")
+                print(
+                    f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists."
+                )
                 message += f"Result: Error - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
             except IsADirectoryError:
-                print(f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory.")
+                print(
+                    f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory."
+                )
                 message += f"Result: Error - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
         elif tool_name == "finish":
             finished = True
@@ -255,7 +286,9 @@ else:
     print("\033[91mMax iterations reached\033[0m")
 
 if eval_dir:
-    with open(os.path.join(eval_dir, "logs", f"{sample_row['instance_id']}-prompt.txt"), "w") as f:
+    with open(
+        os.path.join(eval_dir, "logs", f"{sample_row['instance_id']}-prompt.txt"), "w"
+    ) as f:
         f.write(message)
 else:
     with open("message.txt", "w") as f:
