@@ -92,11 +92,11 @@ stdbuf -o0 tee -a logs/$log_file
 sudo apt install screen
 screen -S agent-eval
 
-eval_dir=$(realpath evals/v15.2) && \
+eval_dir=$(realpath evals/v15.3) && \
 mkdir -p $eval_dir/logs && \
 python eval7.py $eval_dir  2>&1 | \
 stdbuf -o0 tee -a $eval_dir/harness.log && \
-cat ~/dev/llama-stack/llama-pipe > $eval_dir/llama-stack.log
+timeout 10 cat ~/dev/llama-stack/llama-pipe > $eval_dir/llama-stack.log # 5 seconds to fully flush out everything
 ```
 
 Dependencies:
