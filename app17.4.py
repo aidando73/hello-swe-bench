@@ -257,7 +257,8 @@ for i in range(ITERATIONS):
 
                 try: 
                     files = list_files(path, depth=1)
-                    message += f"Result:\n{"\n".join(files)}\n"
+                    message += "Result:\n"
+                    message += "\n".join(files)
                 except FileNotFoundError as e:
                     print(f"\033[91mResult: ERROR - Directory not found: {e}\033[0m")
                     message += f"Result: ERROR - Directory not found: {e}\n"
