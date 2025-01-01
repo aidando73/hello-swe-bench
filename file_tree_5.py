@@ -80,8 +80,3 @@ def list_files(path, depth=1):
     
     dfs(root)
     return  res
-
-import sys
-depth = int(sys.argv[1]) if len(sys.argv) > 1 else 1
-
-print("\n".join(list_files("/workspace/django", depth=depth)))
