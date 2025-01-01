@@ -80,4 +80,4 @@ def list_files(path, depth=1):
     dfs(root)
     return  res
 
-print("\n".join(list_files("/workspace/", depth=2)))
+print("\n".join(list_files("/workspace/django", depth=2)))
