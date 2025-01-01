@@ -10,4 +10,4 @@ df = swebench.to_pandas()
 df_by_repo = df.groupby('repo')
 
 for repo, df_repo in df_by_repo:
-    print(repo)
+    os.system(f"git clone https://github.com/{repo}.git")

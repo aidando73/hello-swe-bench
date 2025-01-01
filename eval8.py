@@ -10,3 +10,10 @@ if len(sys.argv) == 0:
     raise ValueError("Please provide an evaluation directory under swe-evals/")
 
 eval_dir = sys.argv[1]
+
+# Loop through all instances
+    # Checkout commit (force)
+    # Run the agent
+    # Add to predictions.jsonl
+    # reset to original commit (unless checkout already handles changed files) - (remove all additional files)
+
