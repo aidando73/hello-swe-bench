@@ -167,6 +167,8 @@ def parse_tool_calls(content):
 
     return tool_calls
 
+def display_tool_params(tool_params):
+    return f"({', '.join([f'{param_name}="{param_value}"' for param_name, param_value in tool_params.items()])})"
 
 ITERATIONS = 15
 
@@ -211,13 +213,13 @@ for i in range(ITERATIONS):
 
         tool_name, tool_params = tool_call
         message += f"<|start_header_id|>tool<|end_header_id|>\n\n"
-        tool_call_str = f"[{tool_name}({', '.join([f'{param_name}={param_value}' for param_name, param_value in tool_params.items()])})]"
-        message += f"Executed tool call: {tool_call_str}\n"
+        tool_call_str = f"[{tool_name}{display_tool_params(tool_params)}]"
+        message += f"Executing tool call: {tool_call_str}\n"
         print(f"\033[92mCalling tool: {tool_call_str}\033[0m")
         if tool_name == "edit_file":
             if "new_str" not in tool_params:
-                print(f"\033[91mnew_str not found in tool params: {tool_params}\033[0m")
-                message += f"Result: Error - new_str not found in tool params. Please ensure the tool params are correct.\n"
+                print(f"\033[91mnew_str not found in tool params: {display_tool_params(tool_params)}\033[0m")
+                message += f"Result: ERROR - new_str not found in tool params. {display_tool_params(tool_params)}\n"
                 continue
             try:
                 path = tool_params["path"]
@@ -264,17 +266,17 @@ for i in range(ITERATIONS):
                 print(
                     f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists."
                 )
-                message += f"Result: Error - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
+                message += f"Result: ERROR - File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists..\n"
             except IsADirectoryError:
                 print(
                     f"Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory."
                 )
-                message += f"Result: Error - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
+                message += f"Result: ERROR - Path {tool_params['path']} is a directory. Please ensure the path references a file, not a directory..\n"
         elif tool_name == "finish":
             finished = True
             message += f"Result: Task marked as finished\n"
         else:
-            print(f"\033[91mUnknown tool: {tool_name}\033[0m")
+            print(f"\033[91mResult: ERROR - Unknown tool: {tool_name}\033[0m")
             # TODO - does this ever fire? If so we should add into message
         message += f"<|eot_id|>"
 
