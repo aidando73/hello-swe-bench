@@ -4,22 +4,31 @@ SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class Directory:
     name: str
-    files: List[str]
-    directories: List['Directory']
+    files: set[str]
+    directories: set['Directory']
 
     def __init__(self, name: str):
         self.name = name
-        self.files = []
-        self.directories = []
+        self.files = set()
+        self.directories = set()
     
     def add_file(self, file: str):
-        self.files.append(file)
+        self.files.add(file)
     
     def add_directory(self, directory: 'Directory'):
-        self.directories.append(directory)
+        self.directories.add(directory)
     
-    def __iter__(self):
-        return iter(sorted(self.directories) + sorted(self.files))
+    def __str__(self):
+        return f"{self.name} ({len(self.files)} files, {len(self.directories)} directories)"
+
+    def __repr__(self):
+        return f"{self.name} ({len(self.files)} files, {len(self.directories)} directories)"
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)
     
 def list_files(path, depth=1):
     if path.startswith("/workspace/"):
@@ -37,9 +46,38 @@ def list_files(path, depth=1):
 
     files = os.popen(f"cd {path} && git ls-tree -r --name-only HEAD").read()
     files = files.splitlines()
-    root = Directory("root")
+    # tests/test.py
+    #  0     1
+    # tests/core/__init__.py
+    root = Directory(path)
     for file in files:
-    # Sort directories first by checking if item ends with "/"
-    return  sorted(files, key=lambda x: (not x.endswith("/"), x))
+        # Sometimes git ls-tree returns files with quotes around them
+        # E.g., for files with spaces in their name
+        file = file.strip('"')
+        parts = file.split("/")
+        cur = root
+        for i in range(len(parts)):
+            if i + 1 > depth:
+                break
+            if i == len(parts) - 1:
+                cur.add_file(parts[i])
+            else:
+                temp = Directory(parts[i])
+                cur.add_directory(temp)
+                cur = temp
+    res = []
+    def dfs(directory: Directory, path=""):
+        # Recursively process subdirectories
+        for subdir in sorted(directory.directories, key=lambda x: x.name):
+            subdir_path = os.path.join(path, subdir.name)
+            res.append(subdir_path + "/")  # Add trailing slash for directories
+            dfs(subdir, subdir_path)
+        
+                # Add all files in current directory
+        for file in sorted(directory.files):
+            res.append(os.path.join(path, file))
+    
+    dfs(root)
+    return  res
 
-print("\n".join(list_files("/workspace/django", depth=2)))
+print("\n".join(list_files("/workspace/", depth=2)))
