@@ -121,7 +121,7 @@ def parse_tool_calls(content):
         list[tuple]: A list of tuples containing:
             - name (str): The name of the tool
             - params (dict): The parameters of the tool 
-            - tool_content (str): The original tool content
+        or ("error", tool_content, "error message") if the tool call is invalid
     """
     tool_calls = []
     for match in re.finditer(r'<tool>(.*?)</tool>', content, re.DOTALL):
@@ -142,9 +142,9 @@ def parse_tool_calls(content):
                 result = [(name, params) for name, params in result]
                 tool_calls.extend(result)
             else:
-                print("Tool call invalid syntax: ", match.group(1))
+                tool_calls.append(("error", match.group(1), "Tool call invalid syntax: " + match.group(1)))
         except Exception as e:
-            print("Tool call invalid syntax: Could not parse tool call: ", e)
+            tool_calls.append(("error", match.group(1), "Tool call invalid syntax: Could not parse tool call: " + match.group(1) + " " + str(e)))
 
     return tool_calls
 
@@ -178,7 +178,16 @@ for i in range(ITERATIONS):
 
     # Parse tool tags from response
     tool_calls = parse_tool_calls(response.content)
-    for tool_name, tool_params in tool_calls:
+    for tool_call in tool_calls:
+        if tool_call[0] == "error":
+            print(f"\033[91mError: {tool_call[1]}\033[0m")
+            message += f"<|start_header_id|>tool<|end_header_id|>\n\n"
+            message += f"Executed tool call: {tool_call[1]}\n"
+            message += f"Result: Error - {tool_call[2]}\n"
+            message += f"<|eot_id|>"
+            continue
+
+        tool_name, tool_params = tool_call
         message += f"<|start_header_id|>tool<|end_header_id|>\n\n"
         tool_call_str = f"[{tool_name}({', '.join([f'{param_name}={param_value}' for param_name, param_value in tool_params.items()])})]"
         message += f"Executed tool call: {tool_call_str}\n"

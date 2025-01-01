@@ -85,8 +85,9 @@ eval_dir=$(realpath evals/v14) && \
 python eval7.py $eval_dir  2>&1 | \
 stdbuf -o0 tee -a $eval_dir/harness.log
 
+# Run one instance
 log_file=$(cat current_instance.txt)_$(date +%Y-%m-%d_%H-%M).log && \
-bash -c "python setup7.py && python app14.py && python validate7.py"  2>&1 | \
+bash -c "python setup7.py && python app15.py && python validate7.py"  2>&1 | \
 stdbuf -o0 tee -a logs/$log_file
 
 sudo apt install screen
