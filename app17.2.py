@@ -249,11 +249,21 @@ for i in range(ITERATIONS):
         message += f"Executing tool call: {tool_call_str}\n"
         print(f"\033[92mCalling tool: {tool_call_str}\033[0m")
         if tool_name == "list_files":
+            if "path" not in tool_params:
+                print(
+                    f"\033[91mResult: ERROR - path not found in tool params: {display_tool_params(tool_params)}\033[0m"
+                )
+                message += f"Result: ERROR - path not found in tool params. {display_tool_params(tool_params)}\n"
+                continue
+
+            path = tool_params["path"]
+
             if "depth" not in tool_params:
                 depth = 1
             else:
                 depth = tool_params["depth"]
-            files = os.popen(f"cd django && git ls-tree -r --name-only HEAD --depth={depth}").read()
+            files = list_files(path, depth=depth)
+            message += f"Result: {files}\n"
         elif tool_name == "edit_file":
             if "new_str" not in tool_params:
                 print(
