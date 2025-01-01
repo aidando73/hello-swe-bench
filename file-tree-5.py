@@ -1,7 +1,26 @@
 import os
-
+from typing import List
 SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
 
+class Directory:
+    name: str
+    files: List[str]
+    directories: List['Directory']
+
+    def __init__(self, name: str):
+        self.name = name
+        self.files = []
+        self.directories = []
+    
+    def add_file(self, file: str):
+        self.files.append(file)
+    
+    def add_directory(self, directory: 'Directory'):
+        self.directories.append(directory)
+    
+    def __iter__(self):
+        return iter(sorted(self.directories) + sorted(self.files))
+    
 def list_files(path, depth=1):
     if path.startswith("/workspace/"):
         path = os.path.join(SCRIPTS_DIR, path[len("/workspace/") :])
@@ -18,7 +37,8 @@ def list_files(path, depth=1):
 
     files = os.popen(f"cd {path} && git ls-tree -r --name-only HEAD").read()
     files = files.splitlines()
-    files = [f for f in files if f.count("/") < depth]
+    root = Directory("root")
+    for file in files:
     # Sort directories first by checking if item ends with "/"
     return  sorted(files, key=lambda x: (not x.endswith("/"), x))
 
