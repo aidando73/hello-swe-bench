@@ -11,8 +11,8 @@ from llama_models.llama3.api.tool_utils import (
 import re
 import sys
 
-# MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
-MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
+MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
+# MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
 
 formatter = ChatFormat(Tokenizer.get_instance())
 
