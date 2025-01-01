@@ -64,6 +64,24 @@ Here is a list of functions in JSON format that you can invoke.
         }
     },
     {
+        "name": "create_file",
+        "description": "Create a file",
+        "parameters": {
+            "type": "dict",
+            "required": ["path", "content"],
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "The absolute path to the file to create, e.g. `/workspace/django/file.py` or `/workspace/django`."
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The content to write to the file."
+                }
+            }
+        }
+    },
+    {
         "name": "view_file",
         "description": "View a file",
         "parameters": {
