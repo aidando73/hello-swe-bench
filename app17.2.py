@@ -10,6 +10,7 @@ from llama_models.llama3.api.tool_utils import (
 )
 import re
 import sys
+from file_tree_5 import list_files
 
 # MODEL_ID = "meta-llama/Llama-3.1-405B-Instruct-FP8"
 MODEL_ID = "meta-llama/Llama-3.3-70B-Instruct"
@@ -123,25 +124,8 @@ Please start by viewing files in the repository to understand the problem.<|eot_
 """.strip()
 
 
-file_tree = os.popen("cd django && git ls-tree -r --name-only HEAD").read()
-
-# Filter to only include top-level files and directories
-top_level = set()
-
-for line in file_tree.splitlines():
-    # Sometimes git ls-tree returns lines with quotes around them. E.g., if there are spaces in the file name.
-    line = line.strip("\"")
-    if "/" in line:
-        top_level.add(line.split("/")[0] + "/")
-    else:
-        top_level.add(line)
-
-# Sort directories first by checking if item ends with "/"
-top_level = sorted(top_level, key=lambda x: (not x.endswith("/"), x))
-
-
 message = message.replace("%working_directory%", "/workspace/django")
-message = message.replace("%file_tree%", "\n".join(top_level))
+message = message.replace("%file_tree%", "\n".join(list_files("/workspace/django", depth=2)))
 message = message.replace("%problem_statement%", problem_statement)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -212,9 +196,6 @@ def display_tool_params(tool_params):
         )
         + ")"
     )
-
-def list_files(path, depth=1):
-    files = os.popen(f"cd django && git ls-tree -r --name-only HEAD").read()
     
 
 ITERATIONS = 15
