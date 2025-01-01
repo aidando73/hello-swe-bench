@@ -50,7 +50,7 @@ Here is a list of functions in JSON format that you can invoke.
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Absolute path to directory, e.g. `/workspace/django`."
+                    "description": "Absolute path to a directory, e.g. `/workspace/django`. If referencing a file, will return the file."
                 },
                 "depth": {
                     "type": "number",
@@ -125,7 +125,7 @@ Please start by viewing files in the repository to understand the problem.<|eot_
 
 
 message = message.replace("%working_directory%", "/workspace/django")
-message = message.replace("%file_tree%", "\n".join(list_files("/workspace/django", depth=2)))
+message = message.replace("%file_tree%", "\n".join(list_files("/workspace/django", depth=1)))
 message = message.replace("%problem_statement%", problem_statement)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
