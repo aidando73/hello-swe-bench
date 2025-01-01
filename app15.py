@@ -42,11 +42,11 @@ Here is a list of functions in JSON format that you can invoke.
 
 [
     {
-        "name": "replace_in_file",
-        "description": "Replace a string in a file",
+        "name": "edit_file",
+        "description": "Edit a file. Specify the path to the file and the new_str to write to it. If old_str is specified, only the old_str will be replaced with new_str, otherwise the entire file will be replaced by new_str.",
         "parameters": {
             "type": "dict",
-            "required": ["path", "old_str", "new_str"],
+            "required": ["path", "new_str"],
             "properties": {
                 "path": {
                     "type": "string",
@@ -54,29 +54,11 @@ Here is a list of functions in JSON format that you can invoke.
                 },
                 "old_str": {
                     "type": "string",
-                    "description": "The string in `path` to replace."
+                    "description": "The string in the file at `path` to replace. If not specified, the entire file will be replaced by new_str"
                 },
                 "new_str": {
                     "type": "string",
-                    "description": "The new string to replace the old string with."
-                }
-            }
-        }
-    },
-    {
-        "name": "edit_file",
-        "description": "Edit a file. If the file does not exist, it will be created.",
-        "parameters": {
-            "type": "dict",
-            "required": ["path", "content"],
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "The absolute path to the file to edit, e.g. `/workspace/django/file.py` or `/workspace/django`."
-                },
-                "content": {
-                    "type": "string",
-                    "description": "The content to write to the file. If the file does not exist, it will be created. If the file exists, it will be overwritten."
+                    "description": "The new string to write to the file. If the old_str is specified, only the old_str will be replaced with new_str, otherwise the entire file will be replaced by new_str."
                 }
             }
         }
