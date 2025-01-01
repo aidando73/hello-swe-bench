@@ -142,9 +142,9 @@ def parse_tool_calls(content):
                 result = [(name, params) for name, params in result]
                 tool_calls.extend(result)
             else:
-                tool_calls.append(("error", match.group(1), "Tool call invalid syntax: " + match.group(1)))
+                tool_calls.append(("error", match.group(0), "Tool call invalid syntax: " + match.group(0)))
         except Exception as e:
-            tool_calls.append(("error", match.group(1), "Tool call invalid syntax: Could not parse tool call: " + match.group(1) + " " + str(e)))
+            tool_calls.append(("error", match.group(0), "Tool call invalid syntax: Could not parse tool call: " + match.group(0) + " " + str(e)))
 
     return tool_calls
 
