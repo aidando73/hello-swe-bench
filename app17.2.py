@@ -262,8 +262,12 @@ for i in range(ITERATIONS):
                 depth = 1
             else:
                 depth = tool_params["depth"]
-            files = list_files(path, depth=depth)
-            message += f"Result: {files}\n"
+            try: 
+                files = list_files(path, depth=depth)
+                message += f"Result: {files}\n"
+            except FileNotFoundError as e:
+                print(f"\033[91mResult: ERROR - Directory not found: {e}\033[0m")
+                message += f"Result: ERROR - Directory not found: {e}\n"
         elif tool_name == "edit_file":
             if "new_str" not in tool_params:
                 print(
