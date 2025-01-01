@@ -240,7 +240,13 @@ for i in range(ITERATIONS):
                 else:
                     with open(f"{path}", "w") as f:
                         f.write(tool_params["new_str"])
-                message += f"Result: File successfully updated\n"
+                message += f"Result: File updated:\n"
+                # Get git diff for the specific file after update
+                git_diff = os.popen(f"cd django && git diff -- {path}").read()
+                if git_diff:
+                    message += f"{git_diff}\n"
+                else:
+                    message += f"No changes detected\n"
             except FileNotFoundError:
                 print(
                     f"File {tool_params['path']} not found. Please ensure the path is an absolute path and that the file exists."
