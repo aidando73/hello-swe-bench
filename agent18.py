@@ -17,22 +17,30 @@ class Issue:
         Parse the issue url into the owner, repo and issue number
         """
         # Truncate the https:// prefix if it exists
+        base_url = url
         if url.startswith("https://"):
-            the_url = url[len("https://"):]
-        else:
-            the_url = url
+            url = url[len("https://"):]
 
         # Check that the domain is github.com
-        if not the_url.startswith("github.com"):
-            raise ValueError(f"Expected github.com as the domain: {url}")
+        if not url.startswith("github.com"):
+            raise ValueError(f"Expected github.com as the domain: {base_url}")
 
-        parts = the_url.split("/")
-        if len(parts) < 6:
+        parts = url.split("/")
+        if len(parts) < 5: # We expect 5 parts: github.com/owner/repo/issues/issue_number
             raise ValueError("Invalid GitHub issue URL format")
             
-        self.owner = parts[3]  # Repository owner/organization
-        self.repo = parts[4]   # Repository name
-        self.issue_number = parts[6]  # Issue number
+        self.owner = parts[1]
+        self.repo = parts[2]
+        if parts[3] != "issues":
+            raise ValueError(f"Expected /issues/ in the URL: {base_url}")
+    
+        if parts[4] == "":
+            raise ValueError(f"Expected an issue number in the URL: {base_url}")
+
+        try:
+            self.issue_number = int(parts[4])  # Issue number
+        except ValueError:
+            raise ValueError(f"Expected an integer issue number: {parts[4]}")
 
 
 
