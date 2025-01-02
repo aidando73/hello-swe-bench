@@ -1,14 +1,20 @@
 import argparse
+import os
 from typing import Tuple
 import requests
 from ansi import bold, red, green, yellow, blue, magenta, cyan
+from dotenv import load_dotenv
 
+load_dotenv()
+
+GITHUB_API_KEY = os.getenv("GITHUB_API_KEY")
 
 def main(
     issue_url: str,
 ):
     issue = Issue(issue_url)
     print(f"Solving issue {cyan('#' + str(issue.issue_number))} in {cyan(f'{issue.owner}/{issue.repo}')}")
+
 
 class Issue:
     repo: str
@@ -44,7 +50,6 @@ class Issue:
             self.issue_number = int(parts[4])  # Issue number
         except ValueError:
             raise ValueError(f"Expected an integer issue number: {parts[4]}")
-
 
 
 if __name__ == "__main__":
