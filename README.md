@@ -1,5 +1,17 @@
 # Llama Stack Apps Coding Agent
 
+## Prerequisites
+- A github account
+
+
+Create an environment with the dependencies:
+
+```bash
+conda create -n llama-stack-coding-agent python=3.10
+conda activate llama-stack-coding-agent
+# python -m venv .venv should also work here as well but this is only tested on python 3.10 so ymmv
+```
+
 - Go to https://github.com/settings/personal-access-tokens/new
   - Fill in name
   - Select the repositories you want it to have access to
