@@ -16,6 +16,15 @@ eval_dir = sys.argv[1]
 # Number of instances to evaluate
 NUM_INSTANCES = 1
 
+# Check if all_preds.jsonl already exists
+if os.path.exists(os.path.join(eval_dir, "all_preds.jsonl")):
+    raise FileExistsError(f"Evaluation file {os.path.join(eval_dir, 'all_preds.jsonl')} already exists. Please delete it or use a different directory.")
+
+# Create eval directory if it doesn't exist
+os.makedirs(eval_dir, exist_ok=True)
+# Create subdirectories for logs and trajectories
+os.makedirs(os.path.join(eval_dir, "trajs"), exist_ok=True)
+
 
 count = 0
 # Loop through all instances
@@ -33,8 +42,18 @@ for i, row in df.iterrows():
     os.system(f"cd {dir} && git checkout {commit} --force && git clean -fdx")
 
     # Run the agent
-    os.system(f"python {SCRIPT_DIR}/run_agent.py {eval_dir}")
+    os.system(f"python {SCRIPT_DIR}/app17.5.py {eval_dir}")
 
     # Add to predictions.jsonl
-    # reset to original commit (unless checkout already handles changed files) - (remove all additional files)
+    patch = os.popen(f"cd {dir} && git diff").read()
+    pred = {
+        "instance_id": row["instance_id"],
+        "model_name_or_path": "llama-codes",
+        "patch": patch,
+    }
+    with open(os.path.join(eval_dir, f"all_preds.jsonl"), "a") as f:
+        f.write(json.dumps(pred) + "\n")
+    
+    count += 1
+
 
