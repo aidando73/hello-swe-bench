@@ -22,8 +22,8 @@ def main(
     )
     issue_data = response.json()
     # print(json.dumps(response.json(), indent=4))
-    print(f"Title: {bold(issue_data['title'])}")
-    print(f"Body: {magenta(issue_data['body'])}")
+    print(f"Title: {magenta(issue_data['title'])}")
+    print(f"Body: {issue_data['body']}")
 
 
 class Issue:
