@@ -1,12 +1,14 @@
 import argparse
 from typing import Tuple
 import requests
+from ansi import bold, red, green, yellow, blue, magenta, cyan
+
 
 def main(
     issue_url: str,
 ):
     issue = Issue(issue_url)
-    print(f"Solving issue #{issue.issue_number} in {issue.owner}/{issue.repo}")
+    print(f"Solving issue {cyan('#' + str(issue.issue_number))} in {cyan(f'{issue.owner}/{issue.repo}')}")
 
 class Issue:
     repo: str
