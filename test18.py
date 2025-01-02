@@ -22,3 +22,6 @@ def test_parse_invalid_url_no_issue_number():
     with pytest.raises(ValueError, match="Expected an issue number in the URL"):
         Issue("https://github.com/owner/repo/issues/")
 
+def test_issue_number_is_not_integer():
+    with pytest.raises(ValueError, match="Expected an integer issue number"):
+        Issue("https://github.com/owner/repo/issues/not_an_integer")
