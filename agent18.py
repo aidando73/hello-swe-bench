@@ -20,7 +20,10 @@ def main(
         f"https://api.github.com/repos/{issue.owner}/{issue.repo}/issues/{issue.issue_number}",
         headers={"Authorization": f"Bearer {github_api_key}"},
     )
-    print(json.dumps(response.json(), indent=4))
+    issue_data = response.json()
+    # print(json.dumps(response.json(), indent=4))
+    print(f"Title: {bold(issue_data['title'])}")
+    print(f"Body: {magenta(issue_data['body'])}")
 
 
 class Issue:
