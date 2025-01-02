@@ -46,3 +46,4 @@ python3 agent.py \
 ```
 
 - The agent will create a PR with the changes it has made
+- If the agent fails to create a PR, it will create a comment on the issue with the reasoning trace.
