@@ -55,7 +55,7 @@ for i, row in df.iterrows():
     pred = {
         "instance_id": row["instance_id"],
         "model_name_or_path": "llama-codes",
-        "patch": patch,
+        "model_patch": patch,
     }
     with open(os.path.join(eval_dir, f"all_preds.jsonl"), "a") as f:
         f.write(json.dumps(pred) + "\n")
