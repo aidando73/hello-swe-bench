@@ -12,7 +12,12 @@ if len(sys.argv) == 0:
 eval_dir = sys.argv[1]
 
 # Loop through all instances
-    # Checkout commit (force)
+for i, row in df.iterrows():
+    dir = row['repo'].split('/')[1]
+    commit = row['base_commit']
+    # Checkout commit (force) and clean directory
+    os.system(f"cd {dir} && git checkout {commit} --force && git clean -fdx")
+
     # Run the agent
     # Add to predictions.jsonl
     # reset to original commit (unless checkout already handles changed files) - (remove all additional files)
