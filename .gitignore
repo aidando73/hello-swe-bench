@@ -30,3 +30,4 @@ message.txt
 evals/
 current_instance.patch
 swe-evals/
+.env
