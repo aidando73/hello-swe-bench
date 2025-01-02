@@ -1,9 +1,12 @@
+# Llama Stack Apps Coding Agent
 
 - Go to https://github.com/settings/personal-access-tokens/new
   - Fill in name
   - Select the repositories you want it to have access to
 ![alt text](image.png)
 - Add TODO permissions
+- Note that the agent will not be able to close/merge PRs or issues - it will only read from the issue and create a PR
+
 
 ![alt text](image-1.png)
 
@@ -38,5 +41,5 @@ docker run -it \
 - Run the agent, giving it the issue number or url you want solved
 
 ```bash
-python3 agent.py 
+python3 agent.py --issue 
 ```
