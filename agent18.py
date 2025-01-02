@@ -5,8 +5,9 @@ import requests
 def main(
     issue_url: str,
 ):
-    print(f"Solving issue {issue_url}")
-    
+    issue = Issue(issue_url)
+    print(f"Solving issue #{issue.issue_number} in {issue.owner}/{issue.repo}")
+
 class Issue:
     repo: str
     owner: str
