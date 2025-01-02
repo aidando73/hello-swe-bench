@@ -14,7 +14,7 @@ if len(sys.argv) == 0:
 eval_dir = sys.argv[1]
 
 # Number of instances to evaluate
-NUM_INSTANCES = 1
+NUM_INSTANCES = float('inf')
 
 # Check if all_preds.jsonl already exists
 if os.path.exists(os.path.join(eval_dir, "all_preds.jsonl")):
