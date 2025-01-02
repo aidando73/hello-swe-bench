@@ -5,13 +5,10 @@ import requests
 from ansi import bold, red, green, yellow, blue, magenta, cyan
 from dotenv import load_dotenv
 
-load_dotenv()
-
-GITHUB_API_KEY = os.getenv("GITHUB_API_KEY")
-
 
 def main(
     issue_url: str,
+    github_api_key: str,
 ):
     issue = Issue(issue_url)
     print(
@@ -72,4 +69,10 @@ if __name__ == "__main__":
         help="The issue url to solve. E.g., https://github.com/aidando73/bitbucket-syntax-highlighting/issues/67",
     )
     args = parser.parse_args()
-    main(issue_url=args.issue_url)
+
+    load_dotenv()
+    github_api_key = os.getenv("GITHUB_API_KEY")
+    if not github_api_key:
+        raise ValueError("GITHUB_API_KEY is not set in the environment variables")
+
+    main(issue_url=args.issue_url, github_api_key=github_api_key)
