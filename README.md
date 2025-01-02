@@ -50,7 +50,7 @@ docker run -it \
   --env FIREWORKS_API_KEY=$FIREWORKS_API_KEY
 ```
 
-- Run the agent, giving it the issue number or url you want solved (ensuring that the api key has access to that repo)
+- Run the agent, giving it the issue url you want solved (ensuring that the api key has access to that repo)
 
 ```bash
 python3 agent.py \
@@ -59,3 +59,4 @@ python3 agent.py \
 
 - The agent will create a PR with the changes it has made
 - If the agent fails to create a PR, it will create a comment on the issue with the reasoning trace.
+- Note that this is a very simple agent and is not perfect, it is a proof of concept, so it may not always work.
