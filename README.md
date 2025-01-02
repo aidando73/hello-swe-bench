@@ -38,8 +38,11 @@ docker run -it \
   --env FIREWORKS_API_KEY=$FIREWORKS_API_KEY
 ```
 
-- Run the agent, giving it the issue number or url you want solved
+- Run the agent, giving it the issue number or url you want solved (ensuring that the api key has access to that repo)
 
 ```bash
-python3 agent.py --issue 
+python3 agent.py \
+--issue https://github.com/aidando73/bitbucket-syntax-highlighting/issues/67
 ```
+
+- The agent will create a PR with the changes it has made
