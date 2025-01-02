@@ -9,11 +9,20 @@ load_dotenv()
 
 GITHUB_API_KEY = os.getenv("GITHUB_API_KEY")
 
+
 def main(
     issue_url: str,
 ):
     issue = Issue(issue_url)
-    print(f"Solving issue {cyan('#' + str(issue.issue_number))} in {cyan(f'{issue.owner}/{issue.repo}')}")
+    print(
+        f"Solving issue {cyan('#' + str(issue.issue_number))} in {cyan(f'{issue.owner}/{issue.repo}')}"
+    )
+
+    response = requests.get(
+        f"https://api.github.com/repos/{issue.owner}/{issue.repo}/issues/{issue.issue_number}",
+        headers={"Authorization": f"Bearer {GITHUB_API_KEY}"},
+    )
+    print(response.json())
 
 
 class Issue:
@@ -28,21 +37,23 @@ class Issue:
         # Truncate the https:// prefix if it exists
         base_url = url
         if url.startswith("https://"):
-            url = url[len("https://"):]
+            url = url[len("https://") :]
 
         # Check that the domain is github.com
         if not url.startswith("github.com"):
             raise ValueError(f"Expected github.com as the domain: {base_url}")
 
         parts = url.split("/")
-        if len(parts) < 5: # We expect 5 parts: github.com/owner/repo/issues/issue_number
+        if (
+            len(parts) < 5
+        ):  # We expect 5 parts: github.com/owner/repo/issues/issue_number
             raise ValueError("Invalid GitHub issue URL format")
-            
+
         self.owner = parts[1]
         self.repo = parts[2]
         if parts[3] != "issues":
             raise ValueError(f"Expected /issues/ in the URL: {base_url}")
-    
+
         if parts[4] == "":
             raise ValueError(f"Expected an issue number in the URL: {base_url}")
 
