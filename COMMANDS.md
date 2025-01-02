@@ -106,7 +106,10 @@ stdbuf -o0 tee -a logs/$log_file
 
 
 # Run full eval
-
+screen -S agent-eval
+eval_dir=$(realpath swe-evals)/v17.5 \
+    && python eval8.py $eval_dir \
+    | tee -a $eval_dir/harness.log
 ```
 
 Dependencies:

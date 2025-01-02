@@ -25,6 +25,10 @@ os.makedirs(eval_dir, exist_ok=True)
 # Create subdirectories for logs and trajectories
 os.makedirs(os.path.join(eval_dir, "trajs"), exist_ok=True)
 
+# Get line count of llama-stack.log
+log_path = os.path.expanduser("~/dev/llama-stack/llama-stack.log")
+with open(log_path) as f:
+    line_count = sum(1 for line in f)
 
 count = 0
 # Loop through all instances
@@ -33,6 +37,8 @@ for i, row in df.iterrows():
         break
     dir = row['repo'].split('/')[1]
     commit = row['base_commit']
+
+    print("Running instance", row['instance_id'])
 
     # Write sample row to sample_row.json for the agent to use
     with open("sample_row.json", "w") as f:
@@ -54,6 +60,16 @@ for i, row in df.iterrows():
     with open(os.path.join(eval_dir, f"all_preds.jsonl"), "a") as f:
         f.write(json.dumps(pred) + "\n")
     
+    print("Finished instance", row['instance_id'])
+    
     count += 1
 
+print("Finished all instances: ", count)
 
+# Copy the llama-stack.log file - from the line count of the log file to the end of the file
+with open(log_path) as f:
+    for _ in range(line_count - 1):
+        next(f)
+    with open(os.path.join(eval_dir, "llama-stack.log"), "w") as f_out:
+        for line in f:
+            f_out.write(line)
