@@ -1,5 +1,6 @@
 import argparse
 import os
+import json
 from typing import Tuple
 import requests
 from ansi import bold, red, green, yellow, blue, magenta, cyan
@@ -17,9 +18,9 @@ def main(
 
     response = requests.get(
         f"https://api.github.com/repos/{issue.owner}/{issue.repo}/issues/{issue.issue_number}",
-        headers={"Authorization": f"Bearer {GITHUB_API_KEY}"},
+        headers={"Authorization": f"Bearer {github_api_key}"},
     )
-    print(response.json())
+    print(json.dumps(response.json(), indent=4))
 
 
 class Issue:

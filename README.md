@@ -2,7 +2,10 @@
 
 ## Prerequisites
 - A github account
+- git
+- python 3.10
 
+## Setup
 
 Create an environment with the dependencies:
 
