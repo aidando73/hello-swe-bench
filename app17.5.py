@@ -23,6 +23,8 @@ eval_dir = sys.argv[1] if len(sys.argv) > 1 else None
 with open("sample_row.json", "r") as f:
     sample_row = json.load(f)
 
+repo_name = sample_row["repo"].split('/')[1]
+
 problem_statement = sample_row["problem_statement"]
 
 message = """
@@ -120,8 +122,8 @@ Please start by listing out and viewing files in the repository to understand th
 """.strip()
 
 
-message = message.replace("%working_directory%", "/workspace/django")
-message = message.replace("%file_tree%", "\n".join(list_files("/workspace/django", depth=2)))
+message = message.replace("%working_directory%", f"/workspace/{repo_name}")
+message = message.replace("%file_tree%", "\n".join(list_files(f"/workspace/{repo_name}", depth=2)))
 message = message.replace("%problem_statement%", problem_statement)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
