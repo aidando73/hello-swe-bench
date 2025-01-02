@@ -21,7 +21,7 @@ GITHUB_TOKEN=github_pat_11SDF...
 
 - This only supports 3.3 70B model at the moment
 
-Run a llama-stack distribution, we use fireworks for this, but you can use any other distribution that supports the 3.3 70B model:
+Run a llama-stack distribution, we use fireworks in this example, but you can use any other distribution that supports the 3.3 70B model:
 ```bash
 # Run a llama-stack distribution
 export LLAMA_STACK_PORT=5000
